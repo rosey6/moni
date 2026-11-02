@@ -1,0 +1,12 @@
+:root {
+  --cream: #fff9f5;
+  --navy: #102b4c;
+  --coral: #ff6956;
+  --coral-dark: #e85647;
+  --mint: #48d9be;
+  --white: #ffffff;
+  --muted: #647187;
+  --line: #d9d9df;
+  --radius-pill: 999px;
+  --shadow-button: 0 8px 18px rgba(255, 105, 86, 0.18);
+}
