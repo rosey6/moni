@@ -71,6 +71,7 @@ def latest_reset_token(before_ids):
 
 def seed_expired_token(email, token):
     container = os.environ.get("MONI_MYSQL_CONTAINER", "moni-validation-mysql")
+    database = os.environ.get("MONI_DB_NAME", "moni_validation")
     password = os.environ.get("MONI_DB_ROOT_PASSWORD")
     check(password, "MONI_DB_ROOT_PASSWORD is required")
     sql = (
@@ -78,7 +79,7 @@ def seed_expired_token(email, token):
         "SELECT id, UNHEX(SHA2('" + token + "', 256)), DATE_SUB(NOW(), INTERVAL 1 MINUTE) "
         "FROM utilisateurs WHERE email='" + email + "'"
     )
-    result = subprocess.run(["docker", "exec", "-i", container, "mysql", "-uroot", "-p" + password, "moni_validation"], input=sql.encode(), capture_output=True)
+    result = subprocess.run(["docker", "exec", "-i", container, "mysql", "-uroot", "-p" + password, database], input=sql.encode(), capture_output=True)
     check(result.returncode == 0, "expired token seed failed")
 
 
