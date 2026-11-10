@@ -48,7 +48,14 @@ function moniSendPasswordResetEmail(string $email, string $name, string $token):
         }
         $user = moniEnv('MONI_SMTP_USER');
         $password = moniEnv('MONI_SMTP_PASSWORD');
+        if ($user !== '' && $password === '') {
+            $passwordFile = moniEnv('MONI_SMTP_PASSWORD_FILE');
+            if ($passwordFile !== '') {
+                $password = trim((string) @file_get_contents($passwordFile));
+            }
+        }
         if ($user !== '') {
+            if ($password === '') throw new RuntimeException('SMTP authentication is not configured.');
             moniSmtpWrite($socket, 'AUTH LOGIN', 334);
             moniSmtpWrite($socket, base64_encode($user), 334);
             moniSmtpWrite($socket, base64_encode($password), 235);
