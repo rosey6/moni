@@ -3,9 +3,11 @@ import sys
 import uuid
 
 from password_reset_validation import Client, check
+from validation_guard import require_isolated_validation_pool
 
 
 def main():
+    require_isolated_validation_pool()
     suffix = uuid.uuid4().hex[:10]
     email = f"smtp-failure-{suffix}@example.test"
     client = Client()

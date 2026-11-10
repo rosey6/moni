@@ -102,9 +102,15 @@ function moniRateKey(string $email): string
     return hash('sha256', ($_SERVER['REMOTE_ADDR'] ?? 'unknown') . '|' . strtolower($email));
 }
 
+function moniRatePath(string $scope, string $email): string
+{
+    $prefix = preg_replace('/[^a-zA-Z0-9_-]/', '_', getenv('MONI_RATE_LIMIT_PREFIX') ?: 'moni');
+    return rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $prefix . '-' . $scope . '-' . moniRateKey($email) . '.json';
+}
+
 function moniRateLimited(string $email, bool $recordFailure = false): bool
 {
-    $path = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'moni-login-' . moniRateKey($email) . '.json';
+    $path = moniRatePath('login', $email);
     $handle = @fopen($path, 'c+');
     if (!$handle) {
         return false;
@@ -134,13 +140,13 @@ function moniRateLimited(string $email, bool $recordFailure = false): bool
 
 function moniClearRateLimit(string $email): void
 {
-    $path = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'moni-login-' . moniRateKey($email) . '.json';
+    $path = moniRatePath('login', $email);
     @unlink($path);
 }
 
 function moniResetRateLimited(string $email, bool $recordFailure = false): bool
 {
-    $path = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'moni-reset-' . moniRateKey($email) . '.json';
+    $path = moniRatePath('reset', $email);
     $handle = @fopen($path, 'c+');
     if (!$handle) return false;
     flock($handle, LOCK_EX);

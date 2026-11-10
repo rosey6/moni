@@ -5,6 +5,7 @@ container and, for the expired-token assertion, Docker plus the validation DB.
 """
 import json
 import os
+import ssl
 import re
 import subprocess
 import sys
@@ -13,8 +14,11 @@ import urllib.request
 import uuid
 from http.cookiejar import CookieJar
 
+from validation_guard import require_isolated_validation_pool
+
 
 BASE = os.environ.get("MONI_TEST_BASE", "http://127.0.0.1:8080")
+ORIGIN = os.environ.get("MONI_TEST_ORIGIN", "http://127.0.0.1:4173")
 MAILPIT = os.environ.get("MONI_MAILPIT_API", "http://127.0.0.1:18025/api/v1")
 
 
@@ -22,9 +26,13 @@ class Client:
     def __init__(self):
         self.cookies = CookieJar()
         self.csrf = ""
+        handlers = [urllib.request.HTTPCookieProcessor(self.cookies)]
+        if BASE.startswith("https://") and os.environ.get("MONI_TEST_INSECURE_TLS") == "1":
+            handlers.insert(0, urllib.request.HTTPSHandler(context=ssl._create_unverified_context()))
+        self.opener = urllib.request.build_opener(*handlers)
 
     def request(self, path, method="GET", body=None, csrf=True):
-        headers = {"Accept": "application/json", "Origin": "http://127.0.0.1:4173"}
+        headers = {"Accept": "application/json", "Origin": ORIGIN}
         data = None
         if body is not None:
             headers["Content-Type"] = "application/json"
@@ -32,9 +40,8 @@ class Client:
         if csrf and method != "GET" and self.csrf:
             headers["X-CSRF-Token"] = self.csrf
         request = urllib.request.Request(BASE + "/" + path, data=data, headers=headers, method=method)
-        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(self.cookies))
         try:
-            with opener.open(request, timeout=10) as response:
+            with self.opener.open(request, timeout=10) as response:
                 payload = json.loads(response.read())
                 status = response.status
         except urllib.error.HTTPError as error:
@@ -70,20 +77,28 @@ def latest_reset_token(before_ids):
 
 
 def seed_expired_token(email, token):
+    ssh_target = os.environ.get("MONI_MYSQL_SSH_TARGET")
     container = os.environ.get("MONI_MYSQL_CONTAINER", "moni-validation-mysql")
-    database = os.environ.get("MONI_DB_NAME", "moni_validation")
+    database = os.environ.get("MONI_TEST_DB_NAME", os.environ.get("MONI_DB_NAME", "moni_validation"))
     password = os.environ.get("MONI_DB_ROOT_PASSWORD")
-    check(password, "MONI_DB_ROOT_PASSWORD is required")
     sql = (
         "INSERT INTO password_reset_tokens (utilisateur_id, token_hash, expires_at) "
         "SELECT id, UNHEX(SHA2('" + token + "', 256)), DATE_SUB(NOW(), INTERVAL 1 MINUTE) "
         "FROM utilisateurs WHERE email='" + email + "'"
     )
-    result = subprocess.run(["docker", "exec", "-i", container, "mysql", "-uroot", "-p" + password, database], input=sql.encode(), capture_output=True)
+    if ssh_target:
+        result = subprocess.run(
+            ["ssh", "-o", "BatchMode=yes", ssh_target, "sudo", "-n", "mysql", "--protocol=socket", database],
+            input=sql.encode(), capture_output=True,
+        )
+    else:
+        check(password, "MONI_DB_ROOT_PASSWORD is required")
+        result = subprocess.run(["docker", "exec", "-i", container, "mysql", "-uroot", "-p" + password, database], input=sql.encode(), capture_output=True)
     check(result.returncode == 0, "expired token seed failed")
 
 
 def main():
+    require_isolated_validation_pool()
     suffix = uuid.uuid4().hex[:10]
     email = f"reset-{suffix}@example.test"
     missing = f"missing-{suffix}@example.test"
