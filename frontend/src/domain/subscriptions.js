@@ -1,13 +1,17 @@
+import { validAmount, sumAmounts } from './money.js';
+
 export function saveSubscription(items, entry, previousName = null) {
   const name = entry.name.trim();
   if (!name || name.length > 80) throw new Error('Indique un nom de service valide.');
-  if (!Number.isSafeInteger(entry.amount) || entry.amount < 0) throw new Error('Indique un montant valide.');
+  if (!validAmount(entry.amount)) throw new Error('Indique un montant valide.');
   if (!Number.isInteger(entry.billingDay) || entry.billingDay < 1 || entry.billingDay > 31) throw new Error('Choisis un jour valide.');
   if (entry.includedIn && !['rent', 'transport', 'groceries', 'unexpected'].includes(entry.includedIn)) throw new Error('Allocation invalide.');
   const key = name.toLocaleLowerCase('fr');
   if (items.some((item) => item.name.toLocaleLowerCase('fr') === key && item.name !== previousName)) throw new Error('Cet abonnement existe déjà.');
   const updated = items.filter((item) => item.name !== previousName);
-  return [...updated, { name, amount: entry.amount, billingDay: entry.billingDay, includedIn: entry.includedIn || null }];
+  const result = [...updated, { name, amount: entry.amount, billingDay: entry.billingDay, includedIn: entry.includedIn || null }];
+  for (const category of [null, 'rent', 'transport', 'groceries', 'unexpected']) sumAmounts(result.filter((item) => item.includedIn === category).map((item) => item.amount));
+  return result;
 }
 
 export function removeSubscription(items, name) {
@@ -17,10 +21,7 @@ export function removeSubscription(items, name) {
 // Les abonnements liés sont inclus dans leur allocation et ne sont pas ajoutés au total.
 export function calculatePlannedTotal(allocations, subscriptions) {
   const amounts = [...Object.values(allocations), ...subscriptions.filter((item) => !item.includedIn).map((item) => item.amount)];
-  if (!amounts.every((amount) => Number.isSafeInteger(amount) && amount >= 0)) throw new RangeError('Montants invalides.');
-  const total = amounts.reduce((sum, amount) => sum + amount, 0);
-  if (!Number.isSafeInteger(total)) throw new RangeError('Total trop élevé.');
-  return total;
+  return sumAmounts(amounts);
 }
 
 export function monthlyDueDay(year, month, billingDay) {

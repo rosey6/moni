@@ -1,0 +1,44 @@
+# Loopback-only validation vhost. Use an SSH tunnel from the operator PC.
+# Do not expose this listener on a public interface.
+# Replace RELEASE_REVISION during provisioning; never point this vhost at /srv/moni.
+
+server {
+    listen 127.0.0.1:8444 ssl;
+    server_name localhost validation.localhost;
+
+    root /srv/moni-validation/releases/RELEASE_REVISION/frontend;
+    index index.html;
+
+    ssl_certificate /etc/moni/tls/localhost.crt;
+    ssl_certificate_key /etc/moni/tls/localhost.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:SSL_VALIDATION:2m;
+    ssl_session_tickets off;
+
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "no-referrer" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+    add_header Content-Security-Policy "default-src 'self'; img-src 'self' data:; connect-src 'self'; style-src 'self'; script-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" always;
+
+    location ~ \.mjs$ {
+        default_type application/javascript;
+        try_files $uri =404;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location ~ ^/backend/(?:lib|tests|migrations)/ { return 404; }
+    location ~ ^/backend/test-db { return 404; }
+    location ~ ^/backend/(?:schema\.sql|\.env(?:\..*)?|.*\.(?:sql|log|ini|bak))$ { return 404; }
+    location ~ ^/backend/.*\.php$ {
+        include /etc/nginx/fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME /srv/moni-validation/releases/RELEASE_REVISION$fastcgi_script_name;
+        fastcgi_param HTTPS on;
+        fastcgi_pass unix:/run/php/moni-validation-fpm.sock;
+    }
+    location /backend/ { return 404; }
+}

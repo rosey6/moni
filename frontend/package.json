@@ -4,5 +4,8 @@
   "type": "module",
   "scripts": {
     "test:unit": "node --test tests/unit/*.test.js"
+  },
+  "dependencies": {
+    "lucide": "^1.68.0"
   }
 }

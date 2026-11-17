@@ -1,28 +1,38 @@
+import { createIcon } from './icon.js';
+import { createFontAwesomeIcon, hasFontAwesomeIcon } from './fontAwesome.js';
+
+const FONT_AWESOME_FIELDS = { 'user-round': 'faUser', mail: 'faEnvelope', 'lock-keyhole': 'faLock' };
+
 export function createField({ id, label, type = 'text', autocomplete, icon, togglePassword = false }) {
   const wrapper = document.createElement('div');
   wrapper.className = 'field';
+  wrapper.setAttribute('oai-annotatable', label);
   const labelElement = document.createElement('label');
-  labelElement.className = 'sr-only';
+  labelElement.className = 'field-label';
   labelElement.htmlFor = id;
   labelElement.textContent = label;
   const control = document.createElement('div');
   control.className = 'field-control';
-  control.innerHTML = `${icon}<input id="${id}" name="${id}" type="${type}" autocomplete="${autocomplete}" placeholder="${label}" />`;
+  const input = document.createElement('input');
+  input.id = id; input.name = id; input.type = type; input.autocomplete = autocomplete;
+  const fieldIcon = FONT_AWESOME_FIELDS[icon];
+  control.append(fieldIcon && hasFontAwesomeIcon(fieldIcon) ? createFontAwesomeIcon(fieldIcon) : createIcon(icon), input);
 
   if (togglePassword) {
+    const english = document.documentElement.lang === 'en';
     const toggle = document.createElement('button');
     toggle.className = 'password-toggle';
     toggle.type = 'button';
-    toggle.setAttribute('aria-label', `Afficher ${label.toLowerCase()}`);
+    toggle.setAttribute('aria-label', `${english ? 'Show' : 'Afficher'} ${label.toLowerCase()}`);
     toggle.setAttribute('aria-pressed', 'false');
-    toggle.innerHTML = eyeIcon(false);
+    toggle.append(eyeIcon(false));
     toggle.addEventListener('click', () => {
       const input = control.querySelector('input');
       const visible = input.type === 'text';
       input.type = visible ? 'password' : 'text';
-      toggle.setAttribute('aria-label', `${visible ? 'Afficher' : 'Masquer'} ${label.toLowerCase()}`);
+      toggle.setAttribute('aria-label', `${visible ? (english ? 'Show' : 'Afficher') : (english ? 'Hide' : 'Masquer')} ${label.toLowerCase()}`);
       toggle.setAttribute('aria-pressed', String(!visible));
-      toggle.innerHTML = eyeIcon(!visible);
+      toggle.replaceChildren(eyeIcon(!visible));
     });
     control.append(toggle);
   }
@@ -36,7 +46,5 @@ export function createField({ id, label, type = 'text', autocomplete, icon, togg
 }
 
 function eyeIcon(visible) {
-  return visible
-    ? '<svg aria-hidden="true" viewBox="0 0 32 32"><path d="M3 16s5-8 13-8 13 8 13 8-5 8-13 8S3 16 3 16Z"/><circle cx="16" cy="16" r="3"/></svg>'
-    : '<svg aria-hidden="true" viewBox="0 0 32 32"><path d="M4 4l24 24M13 9a14 14 0 0 1 3-.3c8 0 13 7.3 13 7.3a24 24 0 0 1-4.2 4.5M8.2 8.8C5 11.2 3 16 3 16s5 8 13 8a13 13 0 0 0 5-.9"/></svg>';
+  return createFontAwesomeIcon(visible ? 'faEye' : 'faEyeSlash');
 }

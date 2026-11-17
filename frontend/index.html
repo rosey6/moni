@@ -3,15 +3,22 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#fff9f5" />
+    <meta name="theme-color" content="#075C43" />
     <meta name="description" content="Moni, ton budget simplement." />
     <title>Moni — Bienvenue</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" type="image/x-icon" href="./favicon.ico" />
+    <link rel="icon" type="image/png" sizes="512x512" href="./public/icons/moni-organique-512.png" />
+    <link rel="apple-touch-icon" href="./public/icons/moni-organique-192.png" />
     <link rel="stylesheet" href="./src/styles/tokens.css" />
     <link rel="stylesheet" href="./src/styles/base.css" />
     <link rel="stylesheet" href="./src/styles/welcome.css" />
     <link rel="stylesheet" href="./src/styles/auth.css" />
     <link rel="stylesheet" href="./src/styles/onboarding.css" />
     <link rel="stylesheet" href="./src/styles/subscriptions.css" />
+    <link rel="stylesheet" href="./src/styles/finance.css" />
+    <link rel="stylesheet" href="./src/styles/redesign.css" />
+    <link rel="stylesheet" href="./src/styles/notifications.css" />
   </head>
   <body>
     <main id="app" class="welcome-page" aria-labelledby="welcome-title">
@@ -20,38 +27,25 @@
 
       <section class="welcome-content">
         <div class="brand" aria-label="Moni">
-          <span class="brand-mark" aria-hidden="true"><i></i><i></i></span>
-          <span class="brand-name">Moni</span>
-          <span class="brand-spark" aria-hidden="true"><i></i><i></i></span>
-        </div>
-
-        <div class="welcome-hero">
-          <img
-            class="mascot"
-            src="./public/assets/mascots/welcome_open_arms.png"
-            alt="La mascotte Moni ouvre les bras pour souhaiter la bienvenue"
-          />
+          <img class="brand-logo" src="./public/assets/brand/moni-organique.png" alt="Moni" />
         </div>
 
         <div class="welcome-copy">
-          <p class="eyebrow">Ton compagnon budget</p>
           <h1 id="welcome-title">Bienvenue</h1>
-          <p>Gère ton budget simplement</p>
+          <p>Gère ton budget simplement.</p>
         </div>
 
         <div class="welcome-actions">
           <button class="button button--primary" type="button" data-route="signup">
-            <svg aria-hidden="true" viewBox="0 0 32 32"><path d="M16 16a6 6 0 1 0 0-12 6 6 0 0 0 0 12Zm-10 11c0-4 4.5-7 10-7s10 3 10 7"/><path d="M25 8v8M21 12h8"/></svg>
             <span>Créer un compte</span>
           </button>
           <button class="button button--secondary" type="button" data-route="login">
-            <svg aria-hidden="true" viewBox="0 0 32 32"><path d="M18 7h8v18h-8M14 16h12M18 12l-4 4 4 4"/><path d="M5 16h9"/></svg>
             <span>Se connecter</span>
           </button>
         </div>
         <p class="demo-note" role="status" aria-live="polite"></p>
       </section>
     </main>
-    <script type="module" src="./src/main.js"></script>
+    <script type="module" src="./src/main.js?v=20261115-session-timeout"></script>
   </body>
 </html>

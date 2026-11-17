@@ -1,0 +1,64 @@
+/* Profile, settings and privacy share the validated compact finance shell. */
+.finance-shell--profile .finance-hero { min-height: 0; margin: 0 0 12px; padding: 10px 0 0; }
+.finance-shell--profile .finance-hero h1 { font-size: clamp(1.5rem, 3vw, 2rem); line-height: 1.2; }
+.finance-shell--profile .profile-identity, .finance-shell--profile .profile-menu, .finance-shell--profile .settings-card, .finance-shell--profile .privacy-section { padding: 16px; border-radius: 18px; box-shadow: 0 1px 4px rgba(7,92,67,.04); }
+.finance-shell--profile .profile-identity { grid-template-columns: 64px minmax(0, 1fr) 44px; gap: 12px; }
+.finance-shell--profile .profile-avatar { width: 64px; height: 64px; color: #075C43; background: #B9F0D5; font-size: 1.2rem; }
+.finance-shell--profile .profile-identity > div { min-width: 0; }
+.finance-shell--profile .profile-identity > div > strong { font-size: 1rem; overflow-wrap: anywhere; }
+.finance-shell--profile .profile-identity > div > span { font-size: .85rem; overflow-wrap: anywhere; }
+.finance-shell--profile .profile-identity__edit { width: 44px; height: 44px; border: 0; color: #075C43; background: var(--mint-soft); box-shadow: none; }
+.finance-shell--profile .profile-menu { padding: 4px 14px; }
+.finance-shell--profile .profile-menu-row { grid-template-columns: 44px minmax(0,1fr) 44px; gap: 10px; min-height: 68px; }
+.finance-shell--profile .profile-menu-row__icon { width: 44px; height: 44px; border-radius: 12px; color: #075C43; background: var(--mint-soft); }
+.finance-shell--profile .profile-menu-row strong { font-size: .95rem; }
+.finance-shell--profile .profile-menu-row > div > span { font-size: .78rem; }
+.finance-shell--profile .profile-menu-row__button { min-height: 44px; }
+.finance-shell--profile .logout-button { width: 100%; min-height: 48px; margin: 12px 0; border: 0; border-radius: 14px; color: #9b2d20; background: #ffe6df; }
+.finance-shell--profile .logout-button:hover { color: #fff; background: #b8432f; }
+.finance-shell--profile .profile-edit, .finance-shell--profile .profile-confirm { width: min(calc(100% - 32px), 32rem); max-height: 90dvh; margin: auto; padding: 20px; overflow-y: auto; border: 1px solid var(--line); border-radius: 20px; }
+.finance-shell--profile .profile-edit::backdrop, .finance-shell--profile .profile-confirm::backdrop { background: rgba(13,37,32,.42); }
+.finance-shell--profile .profile-form { display: grid; gap: 10px; padding: 0; }
+.finance-shell--profile .profile-dialog-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.finance-shell--profile .profile-dialog-header h2, .finance-shell--profile .profile-confirm h2 { margin: 0; font-size: 1.2rem; font-weight: 700; }
+.finance-shell--profile .profile-edit__avatar { margin: 0 auto; }
+.finance-shell--profile .profile-form .visual-field { margin: 0; }
+.finance-shell--profile .profile-dialog-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.finance-shell--profile .profile-dialog-actions button { width: 100%; min-height: 48px; margin: 0; }
+.finance-shell--profile .profile-dialog-actions .wide-primary { color: white; background: #075C43; }
+.finance-shell--profile .logout-confirm-button { border: 0; color: white; background: #b8432f; }
+.finance-shell--profile .form-status:empty { display: none; }
+.finance-shell--profile .settings-card { margin: 0; }
+.finance-shell--profile .settings-row { grid-template-columns: 40px minmax(0, 1fr) minmax(90px, 120px); gap: 8px; min-height: 64px; }
+.finance-shell--profile .settings-row:last-child { border-bottom: 0; }
+.finance-shell--profile .settings-row__icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; color: #075C43; background: var(--mint-soft); }
+.finance-shell--profile .settings-row__copy { display: grid; gap: 2px; }
+.finance-shell--profile .settings-row__copy small { color: var(--navy-soft); font-size: .72rem; font-weight: 400; }
+.finance-shell--profile .settings-row select { width: 100%; min-width: 0; min-height: 44px; padding: 6px; font-size: .8rem; }
+.finance-shell--profile .settings-card--alerts { display: grid; gap: 0; }
+.finance-shell--profile .profile-push-actions { display: grid; gap: 10px; padding: 16px 0; }
+.finance-shell--profile .profile-push-actions p { margin: 0; color: var(--muted, #52665d); }
+.finance-shell--profile .profile-alert-options { display: grid; gap: 0; border-top: 1px solid var(--line, #e1e9e4); }
+.finance-shell--profile .switch-row { min-height: 48px; border-bottom: 1px solid var(--line); }
+.finance-shell--profile .switch-row:last-child { border: 0; }
+.finance-shell--profile .switch-row input { flex: 0 0 44px; }
+.finance-shell--profile .privacy-section h2 { margin: 0 0 8px; font-size: 1.05rem; font-weight: 700; }
+.finance-shell--profile .privacy-section p { margin: 0; line-height: 1.4; }
+.finance-shell--profile .privacy-policy-notice { padding: 0; background: transparent; }
+@media (min-width: 700px) {
+  .finance-shell--profile .finance-header { width: min(100%, 1120px); }
+  .finance-shell--profile .finance-content > :not(dialog) { max-width: 800px; margin-left: auto; margin-right: auto; }
+  .finance-shell--profile .finance-nav { padding: 6px; border-radius: 24px; }
+  .finance-shell--profile .finance-nav__item { min-height: 56px; padding: 4px; border-radius: 18px; }
+  .finance-shell--profile .finance-nav__item .ui-icon { width: 26px; height: 26px; }
+}
+.finance-shell--profile .profile-form { grid-template-columns: minmax(0, 1fr); }
+.finance-shell--profile .profile-dialog-actions button { grid-column: auto; }
+.finance-shell--profile .settings-card--alerts { justify-content: stretch; align-items: stretch; }
+.finance-shell--profile .settings-global-alert { min-height: 60px; gap: 16px; }
+.finance-shell--profile .settings-global-alert__copy { display: grid; gap: 3px; }
+.finance-shell--profile .settings-global-alert__copy strong { font-size: .95rem; }
+.finance-shell--profile .settings-global-alert__copy small { color: var(--navy-soft); font-size: .78rem; }
+.finance-shell--profile .settings-global-alert input:indeterminate { background: #139B65; }
+.finance-shell--profile .settings-global-alert input:indeterminate::after { transform: translateX(9px); }
+.finance-shell--profile .settings-global-alert input:disabled { opacity: .6; cursor: wait; }

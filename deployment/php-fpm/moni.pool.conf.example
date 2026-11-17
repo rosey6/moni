@@ -1,0 +1,47 @@
+; Moni-only PHP-FPM pool.
+; Install as /etc/php/8.5/fpm/pool.d/moni.conf only during an approved
+; maintenance window. Keep the active www pool unchanged until validation.
+;
+; Prerequisites:
+;   - system user/group moni-fpm exist without a login shell;
+;   - /etc/moni/moni.env is loaded by the PHP-FPM master service;
+;   - the www pool has clear_env = yes before the Moni socket is activated;
+;   - backend files are readable by moni-fpm and not writable by it.
+;   - /var/log/php8.5-fpm-moni.log exists as root:moni-fpm with mode 0660.
+
+[moni]
+user = moni-fpm
+group = moni-fpm
+
+listen = /run/php/moni-fpm.sock
+listen.owner = www-data
+listen.group = www-data
+listen.mode = 0660
+
+pm = ondemand
+pm.max_children = 5
+pm.process_idle_timeout = 10s
+pm.max_requests = 500
+
+; Do not inherit the complete systemd environment. Pass only Moni variables.
+clear_env = yes
+env[MONI_DB_HOST] = $MONI_DB_HOST
+env[MONI_DB_PORT] = $MONI_DB_PORT
+env[MONI_DB_NAME] = $MONI_DB_NAME
+env[MONI_DB_USER] = $MONI_DB_USER
+env[MONI_DB_PASSWORD] = $MONI_DB_PASSWORD
+env[MONI_CORS_ORIGIN] = $MONI_CORS_ORIGIN
+env[MONI_COOKIE_SECURE] = $MONI_COOKIE_SECURE
+env[MONI_SESSION_NAME] = $MONI_SESSION_NAME
+env[MONI_RATE_LIMIT_PREFIX] = $MONI_RATE_LIMIT_PREFIX
+env[MONI_SMTP_HOST] = $MONI_SMTP_HOST
+env[MONI_SMTP_PORT] = $MONI_SMTP_PORT
+env[MONI_SMTP_ENCRYPTION] = $MONI_SMTP_ENCRYPTION
+env[MONI_SMTP_USER] = $MONI_SMTP_USER
+env[MONI_SMTP_PASSWORD] = $MONI_SMTP_PASSWORD
+env[MONI_SMTP_FROM] = $MONI_SMTP_FROM
+env[MONI_RESET_URL] = $MONI_RESET_URL
+
+php_admin_flag[display_errors] = off
+php_admin_flag[log_errors] = on
+php_admin_value[error_log] = /var/log/php8.5-fpm-moni.log
