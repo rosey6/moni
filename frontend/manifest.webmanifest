@@ -1,0 +1,31 @@
+{
+  "name": "Moni",
+  "short_name": "Moni",
+  "description": "Moni, ton budget simplement.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F5FAF7",
+  "theme_color": "#075C43",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "/public/icons/moni-organique-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/public/icons/moni-organique-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/public/icons/moni-organique-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

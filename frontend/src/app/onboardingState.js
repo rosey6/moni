@@ -2,6 +2,8 @@ export const onboardingSteps = ['currency', 'budget', 'rent', 'transport', 'groc
 
 export const onboardingState = {
   currency: 'XOF',
+  onboardingCompleted: false,
+  validatedSteps: [],
   budget: 0,
   subscriptions: [],
   allocations: {
@@ -14,11 +16,11 @@ export const onboardingState = {
 
 export function resetOnboardingState() {
   onboardingState.currency = 'XOF';
+  onboardingState.onboardingCompleted = false;
+  onboardingState.validatedSteps = [];
   onboardingState.budget = 0;
   onboardingState.subscriptions = [];
-  Object.keys(onboardingState.allocations).forEach((category) => {
-    onboardingState.allocations[category] = 0;
-  });
+  onboardingState.allocations = { rent: 0, transport: 0, groceries: 0, unexpected: 0 };
 }
 
 export function getStepIndex(step) {

@@ -1,0 +1,47 @@
+.notification-trigger { position: relative; }
+.notification-badge { position: absolute; top: -4px; right: -4px; min-width: 19px; padding: 2px 4px; border-radius: 999px; color: #fff; background: #075c43; font-size: .65rem; line-height: 1.2; text-align: center; }
+.finance-shell--notifications .finance-hero { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 0; margin: 0 0 12px; padding: 10px 0 0; }
+.finance-shell--notifications .finance-hero h1 { font-size: clamp(1.5rem, 3vw, 2rem); line-height: 1.2; }
+.notifications-mark-all { flex: 0 0 44px; width: 44px; height: 44px; border: 0; color: #075c43; background: transparent; box-shadow: none; }
+.notifications-filters { display: flex; gap: 4px; padding: 4px; margin-bottom: 12px; border: 1px solid var(--line); border-radius: 14px; background: white; }
+.notifications-filters button { flex: 1; min-width: 0; border: 0; background: transparent; }
+.notifications-filters button[aria-pressed='true'] { color: white; background: #075c43; }
+.notifications-list { display: grid; gap: 8px; }
+.notification-group-title { margin: 12px 0 0; color: #075c43; font-size: 1.05rem; }
+.notification-group, .notifications-empty { margin: 0; padding: 0 14px; border: 1px solid var(--line); border-radius: 16px; background: white; }
+.notifications-empty { padding: 16px; }
+.notification-item { width: 100%; display: grid; grid-template-columns: 44px minmax(0,1fr) 10px; gap: 10px; align-items: center; padding: 14px 0; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; color: inherit; background: transparent; box-shadow: none; text-align: left; cursor: pointer; }
+.notification-item:last-child { border: 0; }
+.notification-item__icon { width: 44px; height: 44px; padding: 9px; border-radius: 12px; color: #075c43; background: var(--mint-soft); }
+.notification-item--budget .notification-item__icon { color: #ad4b32; background: #fff0eb; }
+.notification-item__content { display: grid; min-width: 0; gap: 3px; }
+.notification-item__title, .notification-item__message { overflow-wrap: anywhere; }
+.notification-item__title { color: var(--navy); font-size: .98rem; font-weight: 750; }
+.notification-item__message { color: var(--navy-soft); font-size: .94rem; line-height: 1.35; }
+.notification-item__content time { margin-top: 2px; color: var(--navy-soft); font-size: .8rem; }
+.notification-item__dot { width: 8px; height: 8px; border-radius: 50%; background: #139b65; }
+.notification-item__dot[hidden] { visibility: hidden; display: block; }
+.notification-item:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; border-radius: 8px; }
+.notification-item:disabled { cursor: progress; }
+.notifications-status:empty { display: none; }
+.finance-shell--notifications button:disabled { opacity: .55; }
+@media (min-width: 700px) {
+  .finance-shell--notifications .finance-header { width: min(100%, 1120px); }
+  .finance-shell--notifications .finance-content { max-width: 800px; }
+  .finance-shell--notifications .finance-nav { padding: 6px; border-radius: 24px; }
+  .finance-shell--notifications .finance-nav__item { min-height: 56px; padding: 4px; border-radius: 18px; }
+  .finance-shell--notifications .finance-nav__item .ui-icon { width: 26px; height: 26px; }
+}
+.finance-shell--notifications .secondary-wide[hidden] { display: none; }
+.push-activation { width: min(calc(100% - 32px), 380px); max-height: 90dvh; margin: auto; padding: 20px; overflow-y: auto; border: 1px solid var(--line); border-radius: 22px; color: var(--navy); background: white; text-align: center; }
+.push-activation::backdrop { background: rgba(13,37,32,.42); }
+.push-activation__close { display: grid; margin-left: auto; width: 44px; height: 44px; box-shadow: none; }
+.push-activation__bell { display: block; width: 112px; height: auto; max-width: 100%; margin: 0 auto; object-fit: contain; }
+.push-activation h2 { margin: 14px 0 8px; font-size: 1.5rem; }
+.push-activation p { color: var(--navy-soft); line-height: 1.4; }
+.push-activation__activate, .push-activation__later { width: 100%; min-height: 48px; margin-top: 8px; }
+.push-activation__activate { color: white; background: #075c43; }
+.push-activation__activate[hidden] { display: none; }
+.push-activation__later { display: block; min-height: 0; padding: 12px; border: 0; color: #075c43; background: transparent; text-decoration: underline; text-underline-offset: 3px; }
+.push-activation__later:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; border-radius: 6px; }
+.push-activation__status:empty { display: none; }

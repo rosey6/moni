@@ -1,0 +1,5 @@
+Font Awesome Free icons (Classic and Brands) — subset used by Moni.
+Copyright (c) 2026 Fonticons, Inc.
+Icons: CC BY 4.0 — https://creativecommons.org/licenses/by/4.0/
+Font Awesome Free license: https://fontawesome.com/license/free
+Source packages: @fortawesome/free-solid-svg-icons and @fortawesome/free-brands-svg-icons, version 7.3.1.
