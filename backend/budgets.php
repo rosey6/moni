@@ -20,9 +20,17 @@ moniHandleDatabase(function () use ($pdo, $userId, $method, $body): void {
 
     if ($method === 'DELETE') {
         $id = moniId($body['id'] ?? $_GET['id'] ?? null, 'budget');
-        $statement = $pdo->prepare('DELETE FROM budgets WHERE id = :id AND utilisateur_id = :user');
-        $statement->execute(['id' => $id, 'user' => $userId]);
-        if ($statement->rowCount() !== 1) moniError('NOT_FOUND', 'Budget introuvable.', 404);
+        $pdo->beginTransaction();
+        try {
+            $pdo->prepare('SELECT id FROM utilisateurs WHERE id = :user FOR UPDATE')->execute(['user' => $userId]);
+            $statement = $pdo->prepare('DELETE FROM budgets WHERE id = :id AND utilisateur_id = :user');
+            $statement->execute(['id' => $id, 'user' => $userId]);
+            if ($statement->rowCount() !== 1) moniError('NOT_FOUND', 'Budget introuvable.', 404);
+            $pdo->commit();
+        } catch (Throwable $exception) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            throw $exception;
+        }
         moniSuccess(['deleted' => true], 200);
     }
 
@@ -42,18 +50,26 @@ moniHandleDatabase(function () use ($pdo, $userId, $method, $body): void {
     $categoryId = $categoryStatement->fetchColumn();
     if ($categoryId === false) moniError('INVALID_CATEGORY', 'Catégorie invalide.', 422);
 
-    if ($method === 'PATCH' || $method === 'PUT') {
-        $id = moniId($body['id'] ?? $body['budget_id'] ?? $_GET['id'] ?? null, 'budget');
-        $statement = $pdo->prepare('UPDATE budgets SET categorie_id = :category, montant_limite = :amount, mois = :month, annee = :year WHERE id = :id AND utilisateur_id = :user');
-        $statement->execute(['category' => $categoryId, 'amount' => $amount, 'month' => $month, 'year' => $year, 'id' => $id, 'user' => $userId]);
-        if ($statement->rowCount() === 0) {
-            $check = $pdo->prepare('SELECT id FROM budgets WHERE id = :id AND utilisateur_id = :user');
-            $check->execute(['id' => $id, 'user' => $userId]);
-            if (!$check->fetch()) moniError('NOT_FOUND', 'Budget introuvable.', 404);
+    $pdo->beginTransaction();
+    try {
+        $pdo->prepare('SELECT id FROM utilisateurs WHERE id = :user FOR UPDATE')->execute(['user' => $userId]);
+        if ($method === 'PATCH' || $method === 'PUT') {
+            $id = moniId($body['id'] ?? $body['budget_id'] ?? $_GET['id'] ?? null, 'budget');
+            $statement = $pdo->prepare('UPDATE budgets SET categorie_id = :category, montant_limite = :amount, mois = :month, annee = :year WHERE id = :id AND utilisateur_id = :user');
+            $statement->execute(['category' => $categoryId, 'amount' => $amount, 'month' => $month, 'year' => $year, 'id' => $id, 'user' => $userId]);
+            if ($statement->rowCount() === 0) {
+                $check = $pdo->prepare('SELECT id FROM budgets WHERE id = :id AND utilisateur_id = :user');
+                $check->execute(['id' => $id, 'user' => $userId]);
+                if (!$check->fetch()) moniError('NOT_FOUND', 'Budget introuvable.', 404);
+            }
+        } else {
+            $statement = $pdo->prepare('INSERT INTO budgets (utilisateur_id, categorie_id, montant_limite, mois, annee) VALUES (:user, :category, :amount, :month, :year) ON DUPLICATE KEY UPDATE montant_limite = VALUES(montant_limite)');
+            $statement->execute(['user' => $userId, 'category' => $categoryId, 'amount' => $amount, 'month' => $month, 'year' => $year]);
         }
-    } else {
-        $statement = $pdo->prepare('INSERT INTO budgets (utilisateur_id, categorie_id, montant_limite, mois, annee) VALUES (:user, :category, :amount, :month, :year) ON DUPLICATE KEY UPDATE montant_limite = VALUES(montant_limite)');
-        $statement->execute(['user' => $userId, 'category' => $categoryId, 'amount' => $amount, 'month' => $month, 'year' => $year]);
+        $pdo->commit();
+    } catch (Throwable $exception) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        throw $exception;
     }
     moniSuccess(['state' => moniCurrentState($pdo, $userId)], $method === 'POST' ? 201 : 200);
 });

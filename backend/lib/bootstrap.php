@@ -28,10 +28,13 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
 }
 
 $secureCookie = filter_var(getenv('MONI_COOKIE_SECURE') ?: '0', FILTER_VALIDATE_BOOLEAN);
+const MONI_SESSION_IDLE_TIMEOUT = 900;
+const MONI_SESSION_ABSOLUTE_TIMEOUT = 28800;
 ini_set('session.use_strict_mode', '1');
 ini_set('session.use_only_cookies', '1');
 session_name(getenv('MONI_SESSION_NAME') ?: 'moni_session');
 session_set_cookie_params([
+    'lifetime' => MONI_SESSION_ABSOLUTE_TIMEOUT,
     'httponly' => true,
     'secure' => $secureCookie,
     'samesite' => 'Lax',
@@ -48,12 +51,18 @@ try {
     moniError('DATABASE_UNAVAILABLE', 'Le service est temporairement indisponible.', 503);
 }
 
-function moniUserId(): int
+function moniUserId(bool $allowExpiredSession = false): int
 {
     global $pdo;
     $id = $_SESSION['user_id'] ?? null;
     if (!is_int($id) && !(is_string($id) && ctype_digit($id))) {
-        moniError('AUTH_REQUIRED', 'Authentification requise.', 401);
+        moniExpireSession();
+    }
+    $now = time();
+    $authenticatedAt = $_SESSION['authenticated_at'] ?? null;
+    $lastActivityAt = $_SESSION['last_activity_at'] ?? null;
+    if (!$allowExpiredSession && (!is_int($authenticatedAt) || !is_int($lastActivityAt) || $now - $lastActivityAt >= MONI_SESSION_IDLE_TIMEOUT || $now - $authenticatedAt >= MONI_SESSION_ABSOLUTE_TIMEOUT)) {
+        moniExpireSession();
     }
     try {
         $statement = $pdo->prepare('SELECT session_version FROM utilisateurs WHERE id = :id LIMIT 1');
@@ -64,10 +73,26 @@ function moniUserId(): int
         moniError('DATABASE_UNAVAILABLE', 'Le service est temporairement indisponible.', 503);
     }
     if ($version === false || (int) ($_SESSION['session_version'] ?? 0) !== (int) $version) {
-        $_SESSION = [];
-        moniError('AUTH_REQUIRED', 'Session invalide.', 401);
+        moniExpireSession();
     }
     return (int) $id;
+}
+
+function moniExpireSession(): never
+{
+    $_SESSION = [];
+    if (ini_get('session.use_cookies')) {
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', [
+            'expires' => time() - 3600,
+            'path' => $params['path'],
+            'secure' => $params['secure'],
+            'httponly' => $params['httponly'],
+            'samesite' => $params['samesite'] ?? 'Lax',
+        ]);
+    }
+    session_destroy();
+    moniError('AUTH_REQUIRED', 'Session expirée. Reconnecte-toi.', 401);
 }
 
 function moniRequireCsrf(): void
@@ -79,19 +104,23 @@ function moniRequireCsrf(): void
     }
 }
 
-function moniRequireAuth(bool $csrf = false): int
+function moniRequireAuth(bool $csrf = false, bool $allowExpiredSession = false): int
 {
-    $id = moniUserId();
+    $id = moniUserId($allowExpiredSession);
     if ($csrf) {
         moniRequireCsrf();
     }
+    if (!$allowExpiredSession) $_SESSION['last_activity_at'] = time();
     return $id;
 }
 
-function moniCategorySlug(PDO $pdo, mixed $value): string
+function moniCategorySlug(PDO $pdo, mixed $value, string $type = 'expense'): string
 {
     $slug = is_string($value) ? trim($value) : '';
-    if (!in_array($slug, ['rent', 'transport', 'groceries', 'unexpected'], true)) {
+    $allowed = $type === 'income'
+        ? ['salary', 'scholarship', 'family_support', 'freelance', 'other_income']
+        : ['rent', 'transport', 'groceries', 'unexpected'];
+    if (!in_array($slug, $allowed, true)) {
         moniError('INVALID_CATEGORY', 'Catégorie invalide.', 422);
     }
     return $slug;
@@ -185,9 +214,19 @@ function moniCurrentState(PDO $pdo, int $userId): array
 
     $transactions = $pdo->prepare('SELECT t.id, t.type, t.montant AS amount, c.slug AS category, DATE_FORMAT(t.date_operation, \'%Y-%m-%d\') AS date, t.description FROM transactions t INNER JOIN categories c ON c.id = t.categorie_id WHERE t.utilisateur_id = :user ORDER BY t.date_operation DESC, t.id DESC');
     $transactions->execute(['user' => $userId]);
+    $transactionRows = $transactions->fetchAll();
+    $incomeTotal = 0;
+    $expenseTotal = 0;
+    foreach ($transactionRows as $transaction) {
+        if ($transaction['type'] === 'income') $incomeTotal += (int) $transaction['amount'];
+        else $expenseTotal += (int) $transaction['amount'];
+    }
+    $availableBalance = (int) $user['solde_initial'] + $incomeTotal - $expenseTotal;
+
     $subscriptions = $pdo->prepare('SELECT a.id, a.nom AS name, a.montant_mensuel AS amount, a.jour_facturation AS billingDay, c.slug AS includedIn FROM abonnements a LEFT JOIN categories c ON c.id = a.categorie_id WHERE a.utilisateur_id = :user ORDER BY a.nom');
     $subscriptions->execute(['user' => $userId]);
-    $goals = $pdo->prepare('SELECT id, nom AS name, montant_cible AS target, DATE_FORMAT(date_cible, \'%Y-%m-%d\') AS date FROM objectifs_epargne WHERE utilisateur_id = :user ORDER BY date_cible, id');
+    $subscriptionRows = $subscriptions->fetchAll();
+    $goals = $pdo->prepare('SELECT id, nom AS name, mode, montant_cible AS target, DATE_FORMAT(date_cible, \'%Y-%m-%d\') AS date FROM objectifs_epargne WHERE utilisateur_id = :user ORDER BY date_cible IS NULL, date_cible, id');
     $goals->execute(['user' => $userId]);
     $goalRows = $goals->fetchAll();
     $contributions = $pdo->prepare('SELECT id, objectif_id, montant AS amount FROM contributions_epargne WHERE utilisateur_id = :user ORDER BY id');
@@ -198,7 +237,8 @@ function moniCurrentState(PDO $pdo, int $userId): array
     }
     foreach ($goalRows as &$goal) {
         $goal['id'] = (int) $goal['id'];
-        $goal['target'] = (int) $goal['target'];
+        $goal['mode'] = $goal['mode'] === 'free' ? 'free' : 'goal';
+        $goal['target'] = $goal['target'] === null ? null : (int) $goal['target'];
         $goal['contributions'] = $byGoal[$goal['id']] ?? [];
     }
     unset($goal);
@@ -207,9 +247,17 @@ function moniCurrentState(PDO $pdo, int $userId): array
     if (!is_array($preferences)) {
         $preferences = ['alerts' => ['budget' => true, 'subscriptions' => true, 'savings' => true]];
     }
+    $onboardingCompleted = ($preferences['onboardingCompleted'] ?? null) === true;
+    if (!array_key_exists('onboardingCompleted', $preferences)) {
+        $onboardingCompleted = (int) ($user['budget_mensuel'] ?? 0) > 0 || $allocations !== [] || $subscriptionRows !== [];
+    }
+    $preferences['onboardingCompleted'] = $onboardingCompleted;
     $preferences['language'] = $user['langue'] ?: 'fr';
     return [
         'currency' => $user['devise'] ?: 'XOF',
+        'availableBalance' => $availableBalance,
+        'savingsAffectAvailableBalance' => false,
+        'onboardingCompleted' => $onboardingCompleted,
         'budget' => (int) ($user['budget_mensuel'] ?? 0),
         'allocations' => $allocations,
         'subscriptions' => array_map(static function (array $item): array {
@@ -217,12 +265,12 @@ function moniCurrentState(PDO $pdo, int $userId): array
             $item['amount'] = (int) $item['amount'];
             $item['billingDay'] = (int) $item['billingDay'];
             return $item;
-        }, $subscriptions->fetchAll()),
+        }, $subscriptionRows),
         'transactions' => array_map(static function (array $item): array {
             $item['id'] = (int) $item['id'];
             $item['amount'] = (int) $item['amount'];
             return $item;
-        }, $transactions->fetchAll()),
+        }, $transactionRows),
         'goals' => array_map(static fn (array $item): array => $item, $goalRows),
         'profile' => ['id' => (int) $user['id'], 'name' => $user['nom'], 'email' => $user['email']],
         'preferences' => $preferences,

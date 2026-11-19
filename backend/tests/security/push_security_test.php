@@ -25,7 +25,7 @@ $called = false;
 $invalid = new MoniSecurePushHttpClient(function (string $host) use (&$called): array { $called = true; return []; });
 rejects(fn() => $invalid->sendRequest($factory->createRequest('POST', 'https://example.test/private')), 'client rejects an unapproved host');
 check(!$called, 'unapproved host rejected before DNS');
-$clientSource = file_get_contents(__DIR__ . '/../lib/secure_push_http_client.php');
+$clientSource = file_get_contents(dirname(__DIR__, 2) . '/lib/secure_push_http_client.php');
 check(str_contains($clientSource, 'CURLOPT_FOLLOWLOCATION => false') && str_contains($clientSource, 'CURLOPT_SSL_VERIFYPEER => true') && str_contains($clientSource, 'CURLOPT_RESOLVE'), 'pinned TLS request and redirects disabled');
 check(moniIanaTimezone('Africa/Casablanca') === 'Africa/Casablanca', 'IANA timezone');
 rejects(fn() => moniIanaTimezone('../../etc/passwd'), 'reject invalid timezone');

@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/lib/bootstrap.php';
+require_once __DIR__ . '/lib/notification_events.php';
 
 moniMethod('POST');
 $body = moniBody();
@@ -21,6 +22,7 @@ moniHandleDatabase(function () use ($pdo, $token, $password): void {
         }
         $passwordStatement = $pdo->prepare('UPDATE utilisateurs SET `mot de passe` = :password, session_version = session_version + 1 WHERE id = :user');
         $passwordStatement->execute(['password' => password_hash($password, PASSWORD_DEFAULT), 'user' => $reset['utilisateur_id']]);
+        moniEmitNotification($pdo, (int) $reset['utilisateur_id'], 'security:password-reset:' . (int) $reset['id'], 'security', 'Mot de passe modifié', 'Le mot de passe de ton compte Moni a été modifié.', 'profile', null, null, true);
         $pdo->prepare('UPDATE password_reset_tokens SET used_at = NOW() WHERE id = :id')->execute(['id' => $reset['id']]);
         $pdo->prepare('DELETE FROM password_reset_tokens WHERE utilisateur_id = :user AND used_at IS NULL')->execute(['user' => $reset['utilisateur_id']]);
         $pdo->commit();

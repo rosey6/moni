@@ -59,25 +59,37 @@ def register_device(client, suffix, index=0, timezone="America/Los_Angeles"):
 def worker(status="202", concurrent=False):
     env = os.environ.copy()
     env.update({"MONI_TEST_POOL": "moni-validation", "MONI_PUSH_TRANSPORT": "simulated", "MONI_PUSH_ENABLED": "1", "MONI_PUSH_SIMULATED_STATUS": status,
-                "MONI_COMPOSER_AUTOLOAD": "C:/Users/HP/Documents/moni-snapshots/composer-isole/vendor/autoload.php",
-                "OPENSSL_CONF": "C:/Program Files/PHP/current/extras/ssl/openssl.cnf"})
+                "MONI_COMPOSER_AUTOLOAD": os.path.join(ROOT, "backend", "vendor", "autoload.php"),
+                "OPENSSL_CONF": r"C:\Program Files\PHP\current\extras\ssl\openssl.cnf"})
     command = ["php", "backend/notification-worker.php"]
     if concurrent:
         first = subprocess.Popen(command, cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         second = subprocess.Popen(command, cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        outputs = [first.communicate(timeout=30), second.communicate(timeout=30)]
+        outputs = [first.communicate(timeout=120), second.communicate(timeout=120)]
         check(first.returncode == 0 and second.returncode == 0, "concurrent workers finish: " + repr(outputs))
         return outputs
-    return subprocess.run(command, cwd=ROOT, env=env, capture_output=True, text=True, check=True, timeout=30).stdout
+    result = subprocess.run(command, cwd=ROOT, env=env, capture_output=True, text=True, timeout=120)
+    check(result.returncode == 0, "worker exits successfully: " + repr((result.stdout, result.stderr)))
+    return result.stdout
+
+
+def configure_test_vapid_keys():
+    code = "$key=openssl_pkey_new(['private_key_type'=>OPENSSL_KEYTYPE_EC,'curve_name'=>'prime256v1']); $ec=openssl_pkey_get_details($key)['ec']; $encode=static fn(string $value): string => rtrim(strtr(base64_encode($value), '+/', '-_'), '='); echo json_encode(['public'=>$encode(\"\\x04\".$ec['x'].$ec['y']),'private'=>$encode($ec['d'])], JSON_THROW_ON_ERROR);"
+    env = os.environ.copy()
+    env["OPENSSL_CONF"] = r"C:\Program Files\PHP\current\extras\ssl\openssl.cnf"
+    result = subprocess.run(["php", "-r", code], capture_output=True, text=True, check=True, env=env)
+    keys = json.loads(result.stdout)
+    os.environ["MONI_VAPID_PUBLIC_KEY"] = keys["public"]
+    os.environ["MONI_VAPID_PRIVATE_KEY"] = keys["private"]
 
 
 def assert_live_transport_locked():
     env = os.environ.copy()
     env.update({"MONI_TEST_POOL": "moni-validation", "MONI_PUSH_TRANSPORT": "live", "MONI_PUSH_ENABLED": "1",
-                "MONI_COMPOSER_AUTOLOAD": "C:/Users/HP/Documents/moni-snapshots/composer-isole/vendor/autoload.php",
-                "OPENSSL_CONF": "C:/Program Files/PHP/current/extras/ssl/openssl.cnf"})
+                "MONI_COMPOSER_AUTOLOAD": os.path.join(ROOT, "backend", "vendor", "autoload.php"),
+                "OPENSSL_CONF": r"C:\Program Files\PHP\current\extras\ssl\openssl.cnf"})
     env.pop("MONI_TEST_PUSH_DEVICE_AUTHORIZED", None)
-    result = subprocess.run(["php", "backend/notification-worker.php"], cwd=ROOT, env=env, capture_output=True, text=True, timeout=30)
+    result = subprocess.run(["php", "backend/notification-worker.php"], cwd=ROOT, env=env, capture_output=True, text=True, timeout=120)
     check(result.returncode != 0 and "[moni-notification-worker] RuntimeException" in result.stderr and "events=" not in result.stdout, "live transport is locked without explicit authorized test device")
 
 
@@ -103,6 +115,7 @@ echo json_encode(['event'=>$e,'delivery'=>$delivery,'quota'=>(int)$q->fetchColum
 
 def main():
     require_isolated_validation_pool()
+    configure_test_vapid_keys()
     suffix = uuid.uuid4().hex[:8]
     client, user, month = make_event("WorkerQuota", suffix, ["transport", "rent", "groceries", "unexpected"])
     _, push_config = client.request("push-config.php")

@@ -44,7 +44,7 @@ foreach ($subscriptions as $subscription) {
 moniHandleDatabase(function () use ($pdo, $userId, $currency, $monthlyBudget, $normalizedAllocations, $normalizedSubscriptions): void {
     $pdo->beginTransaction();
     try {
-        $user = $pdo->prepare('UPDATE utilisateurs SET devise = :currency, budget_mensuel = :budget WHERE id = :user');
+        $user = $pdo->prepare('UPDATE utilisateurs SET devise = :currency, budget_mensuel = :budget, preferences_json = JSON_SET(COALESCE(preferences_json, JSON_OBJECT()), \'$.onboardingCompleted\', true) WHERE id = :user');
         $user->execute(['currency' => $currency, 'budget' => $monthlyBudget, 'user' => $userId]);
         $month = new DateTimeImmutable('first day of this month');
         $delete = $pdo->prepare('DELETE FROM budgets WHERE utilisateur_id = :user AND mois = :month AND annee = :year');

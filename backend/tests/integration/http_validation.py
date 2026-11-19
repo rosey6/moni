@@ -129,6 +129,8 @@ def main():
     contribution_id = next(goal for goal in payload["data"]["state"]["goals"] if goal["id"] == goal_id)["contributions"][0]["id"]
     status, payload = a.request("savings.php", "PATCH", {"contribution": True, "goalId": goal_id, "id": contribution_id, "amount": 6000})
     check(status == 200, "contribution update")
+    status, _ = a.request("savings.php", "PATCH", {"contribution": True, "goalId": goal_id, "id": contribution_id, "amount": 6000})
+    check(status == 200, "unchanged contribution update")
     status, payload = a.request("savings.php", "PATCH", {"id": goal_id, "name": "Validation Goal Updated", "target": 120000, "date": "2030-12-31"})
     check(status == 200 and payload["data"]["state"]["goals"][0]["name"] == "Validation Goal Updated", "goal update")
     status, payload = a.request("savings.php", "POST", {"name": "Goal without date", "target": 100000, "date": None})

@@ -67,6 +67,10 @@ def main():
     a, b = Client(), Client()
     email_a = register(a, "A", suffix)
     register(b, "B", suffix)
+    _, welcome_a = a.request("notifications.php")
+    _, welcome_b = b.request("notifications.php")
+    check(len(welcome_a["data"]["notifications"]) == 1 and welcome_a["data"]["unreadCount"] == 1, "registration welcome notification for A")
+    check(len(welcome_b["data"]["notifications"]) == 1 and welcome_b["data"]["unreadCount"] == 1, "registration welcome notification for B")
 
     status, unauth = Client().request("notifications.php")
     check(status == 401 and unauth["error"]["code"] == "AUTH_REQUIRED", "unauthenticated read")
@@ -82,7 +86,7 @@ def main():
     status, first = a.request("notifications.php?limit=40")
     page = first["data"]
     check(status == 200 and len(page["notifications"]) == 40, f"first page size: status={status}, count={len(page.get('notifications', []))}, payload={first}")
-    check(page["unreadCount"] == 105 and page["nextCursor"], "exact unread count and cursor")
+    check(page["unreadCount"] == 106 and page["nextCursor"], "welcome plus persisted unread count and cursor")
     untrusted = next(row for row in page["notifications"] if row["id"] == "notice-104")
     check(untrusted["type"] is None and untrusted["title"] is None and untrusted["destination"] is None and untrusted["resourceId"] is None, "client metadata cannot create trusted notification events")
     check(all(row["createdAt"].endswith("Z") for row in page["notifications"]), "UTC timestamps")
@@ -99,13 +103,13 @@ def main():
         cursor = page["nextCursor"]
         pages += 1
         check(pages < 5, "pagination terminates")
-    check(len(seen) == 105 and pages == 3, "all rows reached in stable pages")
+    check(len(seen) == 106 and pages == 3, "all rows reached in stable pages")
 
     reconnected = Client()
     status, logged_in = reconnected.request("login.php", "POST", {"email": email_a, "password": "ValidationPassword!123"}, csrf=False)
     check(status == 200 and logged_in.get("success"), "reconnect account")
     status, persisted = reconnected.request("notifications.php?limit=100")
-    check(status == 200 and persisted["data"]["unreadCount"] == 105 and len(persisted["data"]["notifications"]) == 100, "notification persistence after reconnect")
+    check(status == 200 and persisted["data"]["unreadCount"] == 107 and len(persisted["data"]["notifications"]) == 100, "notification persistence plus login security event after reconnect")
 
     status, invalid = a.request("notifications.php?limit=0")
     check(status == 422 and invalid["error"]["code"] == "INVALID_LIMIT", "invalid limit rejected")
@@ -118,11 +122,11 @@ def main():
     status, repeated = reconnected.request("notifications.php", "PATCH", {"id": target})
     check(status == 200 and repeated.get("success"), "individual read is idempotent")
     status, unread = reconnected.request("notifications.php?filter=unread&limit=100")
-    check(status == 200 and unread["data"]["unreadCount"] == 104, "unread filter and count")
+    check(status == 200 and unread["data"]["unreadCount"] == 106, "unread filter and count after reading one persisted notification")
     check(all(row["id"] != target and not row["read"] for row in unread["data"]["notifications"]), "unread filter excludes read item")
 
     status, isolated = b.request("notifications.php")
-    check(status == 200 and isolated["data"]["notifications"] == [] and isolated["data"]["unreadCount"] == 0, "account isolation")
+    check(status == 200 and [row["id"] for row in isolated["data"]["notifications"]] == [row["id"] for row in welcome_b["data"]["notifications"]] and isolated["data"]["unreadCount"] == 1, "account isolation preserves only B's welcome notification")
     status, forbidden = b.request("notifications.php", "PATCH", {"id": "notice-050"})
     check(status == 404, "cross-account notification IDOR")
     status, all_read = reconnected.request("notifications.php", "PATCH", {"action": "read_all"})

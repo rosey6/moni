@@ -12,6 +12,8 @@ CREATE TABLE IF NOT EXISTS utilisateurs (
     langue CHAR(2) NOT NULL DEFAULT 'fr',
     preferences_json JSON NULL,
     session_version INT UNSIGNED NOT NULL DEFAULT 1,
+    privacy_policy_version VARCHAR(64) NULL,
+    privacy_accepted_at DATETIME(6) NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
@@ -47,7 +49,8 @@ CREATE TABLE IF NOT EXISTS categories (
 ) ENGINE=InnoDB;
 
 INSERT INTO categories (slug, nom) VALUES
-    ('rent', 'Loyer'), ('transport', 'Transport'), ('groceries', 'Courses'), ('unexpected', 'Imprévus')
+    ('rent', 'Loyer'), ('transport', 'Transport'), ('groceries', 'Courses'), ('unexpected', 'Imprévus'),
+    ('salary', 'Salaire'), ('scholarship', 'Bourse d’études'), ('family_support', 'Aide familiale'), ('freelance', 'Freelance'), ('other_income', 'Autres revenus')
 ON DUPLICATE KEY UPDATE nom = VALUES(nom);
 
 CREATE TABLE IF NOT EXISTS budgets (
@@ -92,8 +95,9 @@ CREATE TABLE IF NOT EXISTS objectifs_epargne (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     utilisateur_id BIGINT UNSIGNED NOT NULL,
     nom VARCHAR(80) NOT NULL,
-    montant_cible BIGINT UNSIGNED NOT NULL,
-    date_cible DATE NOT NULL,
+    mode VARCHAR(10) NOT NULL DEFAULT 'goal',
+    montant_cible BIGINT UNSIGNED NULL,
+    date_cible DATE NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_goal_user FOREIGN KEY (utilisateur_id) REFERENCES utilisateurs(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
