@@ -1,7 +1,9 @@
+from pathlib import Path
+import sys
 """End-to-end API checks for a local Moni validation database.
 
 Run with the PHP server configured for the isolated validation database:
-    python backend/tests/http_validation.py
+    python backend/tests/integration/http_validation.py
 """
 import json
 import os
@@ -12,6 +14,7 @@ import urllib.request
 import uuid
 from http.cookiejar import CookieJar
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from validation_guard import require_isolated_validation_pool
 
 
@@ -68,9 +71,16 @@ def main():
     status, payload = Client().request("budgets.php")
     check(status == 401 and payload["error"]["code"] == "AUTH_REQUIRED", "unauthenticated budget access")
 
-    status, payload = a.request("register.php", "POST", {"name": "Validation A", "email": email_a, "password": password, "currency": "XOF"}, csrf=False)
+    status, rejected = Client().request("register.php", "POST", {"name": "No Consent", "email": email_a, "password": password, "currency": "XOF"}, csrf=False)
+    check(status == 422 and rejected["error"]["code"] == "PRIVACY_CONSENT_REQUIRED", "backend rejects missing consent")
+    status, rejected = Client().request("register.php", "POST", {"name": "Old Policy", "email": email_a, "password": password, "currency": "XOF", "privacyAccepted": True, "privacyPolicyVersion": "old-version"}, csrf=False)
+    check(status == 409 and rejected["error"]["code"] == "PRIVACY_POLICY_CHANGED", "backend rejects stale policy version")
+    status, public_policy = Client().request("privacy-policy.php?format=json", csrf=False)
+    check(status == 200 and public_policy["data"]["version"] == "test-v1", "public policy endpoint requires no auth")
+    status, payload = a.request("register.php", "POST", {"name": "Validation A", "email": email_a, "password": password, "currency": "XOF", "privacyAccepted": True, "privacyPolicyVersion": "test-v1"}, csrf=False)
+    check(payload["data"]["privacyConsent"]["version"] == "test-v1" and payload["data"]["privacyConsent"]["acceptedAt"], "recorded consent version and timestamp")
     check(status == 201 and payload["success"], "register A")
-    status, duplicate = Client().request("register.php", "POST", {"name": "Duplicate", "email": email_a, "password": password}, csrf=False)
+    status, duplicate = Client().request("register.php", "POST", {"name": "Duplicate", "email": email_a, "password": password, "privacyAccepted": True, "privacyPolicyVersion": "test-v1"}, csrf=False)
     check(status == 409 and duplicate["error"]["code"] == "EMAIL_EXISTS", "duplicate email")
 
     onboarding = {
@@ -80,7 +90,9 @@ def main():
         "subscriptions": [{"name": "Validation Music", "amount": 3000, "billingDay": 15, "includedIn": None}],
     }
     status, payload = a.request("onboarding.php", "PUT", onboarding)
-    check(status == 200 and payload["data"]["state"]["budget"] == 250000 and payload["data"]["state"]["subscriptions"][0]["name"] == "Validation Music", "onboarding")
+    state = payload["data"]["state"]
+    check(status == 200 and state["budget"] == 250000 and state["subscriptions"][0]["name"] == "Validation Music", "onboarding")
+    check(state["availableBalance"] == 0 and state["savingsAffectAvailableBalance"] is False, "subscription schedule does not change available balance")
 
     status, budgets = a.request("budgets.php")
     check(status == 200 and len(budgets["data"]["budgets"]) == 2, "budget read")
@@ -97,16 +109,30 @@ def main():
     transaction_id = payload["data"]["state"]["transactions"][0]["id"]
     status, payload = a.request("transactions.php", "PATCH", {"id": transaction_id, "type": "expense", "amount": 13000, "category": "groceries", "date": "2026-11-07", "description": "updated"})
     check(status == 200 and payload["data"]["state"]["transactions"][0]["amount"] == 13000, "transaction update")
+    status, payload = a.request("transactions.php", "POST", {"type": "income", "amount": 20000, "category": "salary", "date": "2026-11-08", "description": "recorded income"})
+    check(status == 201 and payload["data"]["state"]["availableBalance"] == 7000, "available balance uses recorded income and expense")
+    for category in ("scholarship", "family_support", "freelance", "other_income"):
+        status, payload = a.request("transactions.php", "POST", {"type": "income", "amount": 1, "category": category, "date": "2026-11-08", "description": "category validation"})
+        check(status == 201, f"income category {category}")
+    check(payload["data"]["state"]["availableBalance"] == 7004, "all five income categories affect recorded balance")
+    status, payload = a.request("transactions.php", "POST", {"type": "expense", "amount": 1, "category": "salary", "date": "2026-11-08"})
+    check(status == 422 and payload["error"]["code"] == "INVALID_CATEGORY", "income category rejected for expense")
+    status, payload = a.request("transactions.php", "POST", {"type": "income", "amount": 1, "category": "rent", "date": "2026-11-08"})
+    check(status == 422 and payload["error"]["code"] == "INVALID_CATEGORY", "expense category rejected for income")
+    status, payload = a.request("profile.php", "PATCH", {"currency": "EUR"})
+    check(status == 409 and payload["error"]["code"] == "CURRENCY_CHANGE_REQUIRES_MIGRATION", "currency change with financial data is refused")
     status, payload = a.request("savings.php", "POST", {"name": "Validation Goal", "target": 100000, "date": "2030-12-31", "initial": 10000})
-    check(status == 201, "goal create")
-    goal_id = payload["data"]["state"]["goals"][0]["id"]
+    check(status == 201 and payload["data"]["state"]["availableBalance"] == 7004, "goal creation does not double count savings")
+    goal_id = next(goal["id"] for goal in payload["data"]["state"]["goals"] if goal["name"] == "Validation Goal")
     status, payload = a.request("savings.php", "POST", {"contribution": True, "goalId": goal_id, "amount": 5000})
-    check(status == 201, "contribution create")
-    contribution_id = payload["data"]["state"]["goals"][0]["contributions"][0]["id"]
+    check(status == 201 and payload["data"]["state"]["availableBalance"] == 7004, "contribution is tracked separately from available balance")
+    contribution_id = next(goal for goal in payload["data"]["state"]["goals"] if goal["id"] == goal_id)["contributions"][0]["id"]
     status, payload = a.request("savings.php", "PATCH", {"contribution": True, "goalId": goal_id, "id": contribution_id, "amount": 6000})
     check(status == 200, "contribution update")
     status, payload = a.request("savings.php", "PATCH", {"id": goal_id, "name": "Validation Goal Updated", "target": 120000, "date": "2030-12-31"})
     check(status == 200 and payload["data"]["state"]["goals"][0]["name"] == "Validation Goal Updated", "goal update")
+    status, payload = a.request("savings.php", "POST", {"name": "Goal without date", "target": 100000, "date": None})
+    check(status == 201 and any(goal["name"] == "Goal without date" and goal["date"] is None for goal in payload["data"]["state"]["goals"]), "optional goal date")
     status, payload = a.request("profile.php", "PATCH", {"name": "Validation A Updated"})
     check(status == 200 and payload["data"]["state"]["profile"]["name"] == "Validation A Updated", "profile update")
 
@@ -122,8 +148,10 @@ def main():
     status, payload = a.request("profile.php", "PATCH", {"currency": "NOT"})
     check(status == 422 and payload["error"]["code"] == "INVALID_CURRENCY", "invalid currency")
 
-    status, payload = b.request("register.php", "POST", {"name": "Validation B", "email": email_b, "password": password, "currency": "XOF"}, csrf=False)
+    status, payload = b.request("register.php", "POST", {"name": "Validation B", "email": email_b, "password": password, "currency": "XOF", "privacyAccepted": True, "privacyPolicyVersion": "test-v1"}, csrf=False)
     check(status == 201, "register B")
+    status, payload = b.request("profile.php", "PATCH", {"currency": "EUR"})
+    check(status == 200 and payload["data"]["state"]["currency"] == "EUR", "currency change before financial data")
     status, payload = b.request("dashboard.php")
     state_b = payload["data"]["state"]
     check(status == 200 and state_b["transactions"] == [] and state_b["goals"] == [], "tenant isolation read")

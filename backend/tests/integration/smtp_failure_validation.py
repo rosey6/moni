@@ -1,8 +1,11 @@
+from pathlib import Path
+import sys
 """Verify that SMTP delivery failure is surfaced instead of faked."""
 import sys
 import uuid
 
 from password_reset_validation import Client, check
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from validation_guard import require_isolated_validation_pool
 
 
@@ -11,7 +14,7 @@ def main():
     suffix = uuid.uuid4().hex[:10]
     email = f"smtp-failure-{suffix}@example.test"
     client = Client()
-    status, payload = client.request("register.php", "POST", {"name": "SMTP Failure", "email": email, "password": "ValidationPassword!123", "currency": "XOF"}, csrf=False)
+    status, payload = client.request("register.php", "POST", {"name": "SMTP Failure", "email": email, "password": "ValidationPassword!123", "currency": "XOF", "privacyAccepted": True, "privacyPolicyVersion": "test-v1"}, csrf=False)
     check(status == 201, "SMTP failure fixture registration")
     status, payload = Client().request("forgot-password.php", "POST", {"email": email}, csrf=False)
     check(status == 503 and payload["error"]["code"] == "EMAIL_UNAVAILABLE", "SMTP failure response")

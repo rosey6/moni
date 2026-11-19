@@ -1,3 +1,5 @@
+from pathlib import Path
+import sys
 """Local password-reset and persistent-notification checks.
 
 Requires the PHP server with MONI_SMTP_* configured for the local Mailpit
@@ -14,6 +16,7 @@ import urllib.request
 import uuid
 from http.cookiejar import CookieJar
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from validation_guard import require_isolated_validation_pool
 
 
@@ -106,7 +109,7 @@ def main():
     new_password = "NewValidationPassword!456"
     primary = Client()
     secondary = Client()
-    status, payload = primary.request("register.php", "POST", {"name": "Reset Validation", "email": email, "password": old_password, "currency": "XOF"}, csrf=False)
+    status, payload = primary.request("register.php", "POST", {"name": "Reset Validation", "email": email, "password": old_password, "currency": "XOF", "privacyAccepted": True, "privacyPolicyVersion": "test-v1"}, csrf=False)
     check(status == 201, "reset account registration")
     status, payload = secondary.request("login.php", "POST", {"email": email, "password": old_password}, csrf=False)
     check(status == 200, "second session before reset")

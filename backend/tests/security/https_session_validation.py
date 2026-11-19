@@ -1,3 +1,5 @@
+from pathlib import Path
+import sys
 """Smoke-test Secure session cookies through a local HTTPS reverse proxy."""
 import http.cookiejar
 import json
@@ -6,6 +8,7 @@ import sys
 import urllib.request
 import uuid
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from validation_guard import require_isolated_validation_pool
 
 
@@ -19,7 +22,7 @@ def main():
     cookies = http.cookiejar.CookieJar()
     opener = urllib.request.build_opener(urllib.request.HTTPSHandler(context=context), urllib.request.HTTPCookieProcessor(cookies))
     email = f"https-{uuid.uuid4().hex[:10]}@example.test"
-    body = json.dumps({"name": "HTTPS Validation", "email": email, "password": "ValidationPassword!123", "currency": "XOF"}).encode()
+    body = json.dumps({"name": "HTTPS Validation", "email": email, "password": "ValidationPassword!123", "currency": "XOF", "privacyAccepted": True, "privacyPolicyVersion": "test-v1"}).encode()
     headers = {"Content-Type": "application/json", "Origin": ORIGIN, "Accept": "application/json"}
     request = urllib.request.Request(BASE + "/register.php", data=body, headers=headers, method="POST")
     with opener.open(request, timeout=10) as response:

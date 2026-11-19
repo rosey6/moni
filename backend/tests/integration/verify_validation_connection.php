@@ -6,7 +6,7 @@ if (PHP_SAPI !== 'cli') {
     exit(1);
 }
 
-require_once dirname(__DIR__) . '/database.php';
+require_once dirname(__DIR__, 2) . '/database.php';
 
 $expected = 'moni_validation_vps';
 $actual = moniConnect()->query('SELECT DATABASE()')->fetchColumn();

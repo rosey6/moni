@@ -1,3 +1,5 @@
+from pathlib import Path
+import sys
 """Check cookie attributes emitted when MONI_COOKIE_SECURE=1."""
 import json
 import os
@@ -6,6 +8,7 @@ import sys
 import urllib.request
 import uuid
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from validation_guard import require_isolated_validation_pool
 
 
@@ -15,7 +18,7 @@ ORIGIN = os.environ.get("MONI_TEST_ORIGIN", "https://moni.example.test")
 
 def main():
     require_isolated_validation_pool()
-    body = json.dumps({"name": "Secure Cookie", "email": f"cookie-{uuid.uuid4().hex[:10]}@example.test", "password": "ValidationPassword!123", "currency": "XOF"}).encode()
+    body = json.dumps({"name": "Secure Cookie", "email": f"cookie-{uuid.uuid4().hex[:10]}@example.test", "password": "ValidationPassword!123", "currency": "XOF", "privacyAccepted": True, "privacyPolicyVersion": "test-v1"}).encode()
     request = urllib.request.Request(BASE + "/register.php", data=body, headers={"Content-Type": "application/json", "Origin": ORIGIN}, method="POST")
     context = ssl._create_unverified_context() if os.environ.get("MONI_TEST_INSECURE_TLS") == "1" else None
     with urllib.request.urlopen(request, timeout=10, context=context) as response:

@@ -1,0 +1,45 @@
+<?php
+declare(strict_types=1);
+require_once dirname(__DIR__, 2) . '/lib/push_security.php';
+if (getenv('MONI_COMPOSER_AUTOLOAD') && is_file(getenv('MONI_COMPOSER_AUTOLOAD'))) require_once getenv('MONI_COMPOSER_AUTOLOAD');
+require_once dirname(__DIR__, 2) . '/lib/secure_push_http_client.php';
+function check(bool $condition, string $message): void { if (!$condition) throw new RuntimeException($message); }
+function rejects(callable $operation, string $message): void { try { $operation(); } catch (Throwable) { return; } throw new RuntimeException($message); }
+$endpoint = moniValidatePushEndpoint('https://fcm.googleapis.com/fcm/send/test');
+check($endpoint['host'] === 'fcm.googleapis.com', 'allowed push host');
+foreach (['http://fcm.googleapis.com/token', 'https://127.0.0.1/token', 'https://fcm.googleapis.com.evil.test/token', 'https://user@fcm.googleapis.com/token', 'https://fcm.googleapis.com:444/token', 'https://fcm.googleapis.com/token#fragment'] as $invalid) rejects(fn() => moniValidatePushEndpoint($invalid), 'reject endpoint ' . $invalid);
+$p256dh = rtrim(strtr(base64_encode(hex2bin('046b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c2964fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5')), '+/', '-_'), '=');
+$auth = rtrim(strtr(base64_encode(str_repeat("\x02", 16)), '+/', '-_'), '=');
+$valid = moniValidatePushSubscription(['endpoint' => $endpoint['endpoint'], 'keys' => ['p256dh' => $p256dh, 'auth' => $auth]]);
+check($valid['keys']['p256dh'] === $p256dh, 'valid subscription key material');
+foreach (['invalid-host' => ['endpoint' => 'https://localhost/a', 'keys' => ['p256dh' => $p256dh, 'auth' => $auth]], 'invalid-key' => ['endpoint' => $endpoint['endpoint'], 'keys' => ['p256dh' => str_repeat('A', 87), 'auth' => $auth]], 'off-curve-key' => ['endpoint' => $endpoint['endpoint'], 'keys' => ['p256dh' => rtrim(strtr(base64_encode("\x04" . str_repeat("\0", 64)), '+/', '-_'), '='), 'auth' => $auth]]] as $name => $value) rejects(fn() => moniValidatePushSubscription($value), $name);
+check(moniResolvePublicPushAddress('fcm.googleapis.com', fn() => [['ip' => '142.250.72.42']]) === '142.250.72.42', 'public DNS pin');
+rejects(fn() => moniResolvePublicPushAddress('fcm.googleapis.com', fn() => [['ip' => '142.250.72.42'], ['ip' => '127.0.0.1']]), 'reject mixed public/private DNS');
+rejects(fn() => moniResolvePublicPushAddress('fcm.googleapis.com', fn() => [['ipv6' => '::1']]), 'reject private IPv6 DNS');
+$factory = new Nyholm\Psr7\Factory\Psr17Factory();
+$resolved = false;
+$blocked = new MoniSecurePushHttpClient(function (string $host) use (&$resolved): array { $resolved = true; return [['ip' => '127.0.0.1']]; });
+rejects(fn() => $blocked->sendRequest($factory->createRequest('POST', $endpoint['endpoint'])), 'send-time resolver blocks a private address before cURL');
+check($resolved, 'send-time DNS validation ran');
+$called = false;
+$invalid = new MoniSecurePushHttpClient(function (string $host) use (&$called): array { $called = true; return []; });
+rejects(fn() => $invalid->sendRequest($factory->createRequest('POST', 'https://example.test/private')), 'client rejects an unapproved host');
+check(!$called, 'unapproved host rejected before DNS');
+$clientSource = file_get_contents(__DIR__ . '/../lib/secure_push_http_client.php');
+check(str_contains($clientSource, 'CURLOPT_FOLLOWLOCATION => false') && str_contains($clientSource, 'CURLOPT_SSL_VERIFYPEER => true') && str_contains($clientSource, 'CURLOPT_RESOLVE'), 'pinned TLS request and redirects disabled');
+check(moniIanaTimezone('Africa/Casablanca') === 'Africa/Casablanca', 'IANA timezone');
+rejects(fn() => moniIanaTimezone('../../etc/passwd'), 'reject invalid timezone');
+putenv('MONI_PUSH_ENCRYPTION_KEY=' . base64_encode(random_bytes(32)));
+$hash = hash('sha256', $endpoint['endpoint'], true);
+$cipher = moniEncryptPushSubscription(json_encode($valid, JSON_THROW_ON_ERROR), 17, $hash);
+check(moniDecryptPushSubscription($cipher, 17, $hash) === json_encode($valid, JSON_THROW_ON_ERROR), 'AEAD round trip');
+putenv('MONI_PUSH_ENCRYPTION_KEY_PREVIOUS=' . getenv('MONI_PUSH_ENCRYPTION_KEY'));
+putenv('MONI_PUSH_ENCRYPTION_KEY=' . base64_encode(random_bytes(32)));
+check(moniDecryptPushSubscription($cipher, 17, $hash) === json_encode($valid, JSON_THROW_ON_ERROR), 'AEAD decrypts during controlled key rotation');
+putenv('MONI_PUSH_ENCRYPTION_KEY_PREVIOUS');
+rejects(fn() => moniDecryptPushSubscription($cipher, 17, $hash), 'retired AEAD key cannot decrypt after overlap removal');
+putenv('MONI_PUSH_ENCRYPTION_KEY=' . base64_encode(random_bytes(32)));
+rejects(fn() => moniDecryptPushSubscription($cipher, 18, $hash), 'user-bound associated data');
+$cipher[35] = chr(ord($cipher[35]) ^ 1);
+rejects(fn() => moniDecryptPushSubscription($cipher, 17, $hash), 'AEAD tamper detection');
+echo "PUSH_SECURITY_PASS\n";
