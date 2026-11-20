@@ -52,7 +52,6 @@ const PRECACHE_URLS = [
   '/vendor/lucide-icons.mjs',
   '/src/components/fontAwesome.js',
   '/public/assets/brand/moni-organique.png',
-  '/src/styles/redesign.css',
   '/public/icons/moni-organique-192.png',
   '/public/icons/moni-organique-512.png',
   '/public/icons/moni-organique-512-maskable.png',
