@@ -17,7 +17,6 @@ frontend/public/assets/flags/*
 !frontend/public/assets/flags/*.svg
 !frontend/public/assets/flags/LICENSE
 frontend/public/assets/mascots/*
-!frontend/public/assets/mascots/*.png
 
 # Publication frontend/QA/DevOps allowlist, appended while preserving main rules
 !deployment/
@@ -25,7 +24,6 @@ frontend/public/assets/mascots/*
 !frontend/README.md
 !frontend/favicon.ico
 !frontend/manifest.webmanifest
-!frontend/qa_*.py
 !frontend/run_browser_tests.py
 !frontend/tests/
 !frontend/tests/**
@@ -69,9 +67,9 @@ frontend/tests/__pycache__/
 !frontend/pnpm-lock.yaml
 !frontend/sw.js
 !frontend/public/icons/
-!frontend/public/icons/**
+!frontend/public/icons/moni-organique-*.png
 !frontend/public/assets/mascots/validated/
-!frontend/public/assets/mascots/validated/**
+!frontend/public/assets/mascots/validated/*.webp
 !frontend/public/assets/savings/
 !frontend/public/assets/savings/**
 
@@ -106,3 +104,15 @@ backend/tests/security/*
 !backend/tests/unit/
 backend/tests/unit/*
 !backend/tests/unit/*.php
+
+# Fichiers générés et données locales
+**/artifacts/
+**/test-results/
+**/.pytest_cache/
+**/__pycache__/
+**/*.pyc
+**/*.sqlite
+**/*.sqlite3
+**/*.sql.gz
+**/*.dump
+**/*.bak

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import vm from 'node:vm';
 
 function worker() {
@@ -83,5 +83,17 @@ test('les politiques CSP Nginx restent fermées aux scripts inline et aux origin
     assert.ok(match, `CSP missing in ${file}`);
     for (const directive of ["default-src 'self'", "connect-src 'self'", "style-src 'self'", "script-src 'self'", "frame-ancestors 'none'", "base-uri 'self'"]) assert.ok(match[1].includes(directive), `${directive} missing in ${file}`);
     assert.doesNotMatch(match[1], /unsafe-inline|unsafe-eval|https?:\/\//);
+  }
+});
+
+test('chaque ressource précachée existe dans le frontend', () => {
+  const script = readFileSync(new URL('../../sw.js', import.meta.url), 'utf8');
+  const list = script.match(/const PRECACHE_URLS = \[([\s\S]*?)\];/);
+  assert.ok(list, 'PRECACHE_URLS absent');
+  const urls = Array.from(list[1].matchAll(/'([^']+)'/g), match => match[1]);
+  for (const url of urls) {
+    const pathname = url.split('?')[0];
+    const relativePath = pathname === '/' ? 'index.html' : pathname.replace(/^\//, '');
+    assert.ok(existsSync(new URL('../../' + relativePath, import.meta.url)), 'Ressource introuvable : ' + url);
   }
 });
