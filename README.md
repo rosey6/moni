@@ -32,6 +32,4 @@ pnpm run test:unit
 
 Voir le [guide de développement](docs/development.md) pour l'installation complète.
 
-## Contributions
 
-Frontend, intégration, QA et déploiement : propriétaire du dépôt. Le backend a été initialement développé par une collègue ; son attribution nominative sera complétée avec son accord.
