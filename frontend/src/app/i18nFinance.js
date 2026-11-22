@@ -1,6 +1,9 @@
 // Textes financiers de l’interface.
 const en = {
   "Accueil": "Home",
+  "Certaines alertes sont activées.": "Some alerts are enabled.",
+  "Alertes du compte et notifications sur cet appareil.": "Account alerts and notifications on this device.",
+  "Activer les alertes du compte et sur cet appareil.": "Enable account and device alerts.",
   "Transaction invalide.": "Invalid transaction.",
   "Bonjour": "Hello",
   "Vue d’ensemble": "Overview",

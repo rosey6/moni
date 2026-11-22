@@ -1,4 +1,4 @@
-import { financeText as tr } from '../app/i18nFinance.js?v=full-i18n-profilefix-20261122';
+import { financeText as tr } from '../app/i18nFinance.js?v=full-i18n-finalfix-20261122';
 import { createIcon } from './icon.js';
 
 const iconAliases = {

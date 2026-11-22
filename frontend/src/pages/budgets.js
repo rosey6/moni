@@ -1,4 +1,4 @@
-import { financeText as tr, financeFormat as fmt, financeLocale } from '../app/i18nFinance.js?v=full-i18n-profilefix-20261122';
+import { financeText as tr, financeFormat as fmt, financeLocale } from '../app/i18nFinance.js?v=full-i18n-finalfix-20261122';
 import { parseAmount } from '../domain/budget.js';
 import { currencyDigits, formatAmount, formatMoney, inputAmount, sumAmounts } from '../domain/money.js';
 import { budgetCategories, summarizeBudgets, removeBudget } from '../domain/budgets.js';
