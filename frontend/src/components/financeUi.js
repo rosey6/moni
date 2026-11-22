@@ -33,7 +33,7 @@ export function iconButton(label, name, action, className = '') {
   return button;
 }
 
-export function createHero(state, { title, subtitle, route, navigate, back = false }) {
+export function createHero(state, { title, subtitle, route, navigate, back = false, backRoute, backLabel }) {
   const hero = document.createElement('section');
   hero.className = `finance-hero finance-hero--${route}`;
   const copy = document.createElement('div');
@@ -43,7 +43,7 @@ export function createHero(state, { title, subtitle, route, navigate, back = fal
   heading.tabIndex = -1;
   copy.append(heading);
   if (back) {
-    const backButton = iconButton(tr(state, 'Retour'), 'arrow-left', () => navigate(route === 'goal-edit' ? 'savings' : 'transactions'), 'hero-back');
+    const backButton = iconButton(tr(state, backLabel || 'Retour'), 'arrow-left', () => navigate(backRoute || (route === 'goal-edit' ? 'savings' : 'transactions')), 'hero-back');
     hero.append(backButton);
   }
   hero.append(copy);

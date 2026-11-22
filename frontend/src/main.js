@@ -9,7 +9,7 @@ import { createDashboardPage } from './pages/dashboard.js';
 import { createTransactionsPage } from './pages/transactions.js';
 import { createBudgetsPage } from './pages/budgets.js';
 import { createSavingsPage } from './pages/savings.js';
-import { createProfilePage } from './pages/profile.js?v=20261115-one-click-toggle';
+import { createProfilePage } from './pages/profile.js?v=profile-subscriptions-20261122';
 import { createPasswordRecoveryPage } from './pages/passwordRecovery.js';
 import { createSubscriptionManagerPage } from './pages/subscriptionManager.js';
 import { iconButton, logo, createBottomNav } from './components/financeUi.js';

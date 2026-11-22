@@ -21,8 +21,7 @@ function field(label, type = 'text') {
 export function createSubscriptionManagerPage(app, state, navigate) {
   app.replaceChildren();
   const demo = Boolean(state.demoFixture);
-  const { hero, heading } = createHero(state, { title: tr(state, 'Abonnements'), subtitle: tr(state, 'Suis tes charges prévues sans prélèvement automatique.'), route: 'profile', navigate });
-  const back = actionButton(tr(state, 'Retour au profil'), () => navigate('profile'), 'text-button');
+  const { hero, heading } = createHero(state, { title: tr(state, 'Abonnements'), subtitle: tr(state, 'Suis tes charges prévues sans prélèvement automatique.'), route: 'subscriptions-manage', navigate, back: true, backRoute: 'profile' });
   const summary = card('subscription-manager-summary');
   summary.append(document.createElement('strong'), document.createElement('span'));
   summary.firstChild.textContent = tr(state, 'Total mensuel prévisionnel');
@@ -30,6 +29,7 @@ export function createSubscriptionManagerPage(app, state, navigate) {
   const list = card('subscription-manager-list');
   const formCard = card('subscription-manager-form');
   let editing = null;
+  formCard.hidden = true;
 
   const renderForm = () => {
     formCard.replaceChildren();
@@ -72,7 +72,7 @@ export function createSubscriptionManagerPage(app, state, navigate) {
     allocation.value = editing?.includedIn || ''; allocationLabel.append(allocation);
     const error = document.createElement('p'); error.className = 'form-error'; error.setAttribute('role', 'alert');
     const submit = actionButton(tr(state, 'Enregistrer')); submit.type = 'submit';
-    const cancel = actionButton(tr(state, 'Annuler'), () => { editing = null; renderForm(); }, 'secondary-wide');
+    const cancel = actionButton(tr(state, 'Annuler'), () => { editing = null; formCard.hidden = true; }, 'secondary-wide');
     form.append(name.wrapper, calendar, chosen, amount.wrapper, allocationLabel, error, submit, cancel);
     form.addEventListener('submit', async event => {
       event.preventDefault();
@@ -81,15 +81,17 @@ export function createSubscriptionManagerPage(app, state, navigate) {
         const candidate = saveSubscription(state.subscriptions, entry, editing?.name || null);
         const saved = candidate[candidate.length - 1];
         const result = editing ? await updateSubscription(editing.id, saved) : await createSubscription(saved);
-        applyServerState(state, result.state); editing = null; render(); renderForm();
+        applyServerState(state, result.state); editing = null; render(); formCard.hidden = true;
       } catch (exception) { error.textContent = tr(state, exception.message || 'Impossible d’enregistrer l’abonnement.'); }
     });
+    formCard.hidden = false;
     formCard.append(title, form);
   };
 
   const render = () => {
     list.replaceChildren();
     const title = document.createElement('h2'); title.textContent = tr(state, 'Mes abonnements'); list.append(title);
+    if (!demo) list.append(actionButton(tr(state, 'Ajouter un abonnement'), () => { editing = null; renderForm(); }, 'secondary-wide'));
     if (!state.subscriptions.length) { const empty = document.createElement('p'); empty.className = 'empty-copy'; empty.textContent = tr(state, 'Aucun abonnement pour le moment.'); list.append(empty); }
     state.subscriptions.forEach(subscription => {
       const item = document.createElement('article'); item.className = 'subscription-manager-card';
@@ -102,7 +104,7 @@ export function createSubscriptionManagerPage(app, state, navigate) {
         const actions = document.createElement('div'); actions.className = 'subscription-manager-actions';
         actions.append(actionButton(tr(state, 'Modifier'), () => { editing = subscription; renderForm(); }, 'row-action'), actionButton(tr(state, 'Supprimer'), async () => {
           if (!window.confirm(tr(state, 'Supprimer cet abonnement ?'))) return;
-          try { const result = await deleteSubscription(subscription.id); applyServerState(state, result.state); render(); renderForm(); }
+          try { const result = await deleteSubscription(subscription.id); applyServerState(state, result.state); render(); }
           catch (exception) { window.alert(tr(state, exception.message || 'Impossible de supprimer l’abonnement.')); }
         }, 'row-action'));
         item.append(copy, amount, actions);
@@ -113,7 +115,7 @@ export function createSubscriptionManagerPage(app, state, navigate) {
   };
 
   render();
-  if (demo) { const note = document.createElement('p'); note.className = 'empty-copy'; note.textContent = tr(state, 'Mode démo : aucune donnée n’est envoyée.'); app.append(hero, back, summary, list, note); }
-  else { renderForm(); app.append(hero, back, summary, list, formCard); }
+  if (demo) { const note = document.createElement('p'); note.className = 'empty-copy'; note.textContent = tr(state, 'Mode démo : aucune donnée n’est envoyée.'); app.append(hero, summary, list, note); }
+  else app.append(hero, summary, list, formCard);
   heading.focus({ preventScroll: true });
 }

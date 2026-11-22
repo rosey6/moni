@@ -58,7 +58,7 @@ function createProfileForm(state, identityCopy, identityAvatar) {
   edit.className = 'visual-card profile-edit';
   edit.setAttribute('aria-labelledby', 'profile-edit-title');
   const form = node('form', undefined, 'profile-form');
-  const title = node('h2', 'Modifier le profil');
+  const title = node('h2', financeTr(state, 'Modifier le profil'));
   title.id = 'profile-edit-title';
   const avatar = node('span', undefined, 'profile-edit__avatar');
   avatar.textContent = initials(state.profile.name);
@@ -137,14 +137,14 @@ export function createProfilePage(app, state, navigate) {
   const route = location.hash.slice(1).split('?')[0];
   app.replaceChildren();
   if (route === 'privacy') {
-    const { hero, heading } = createHero(state, { title: 'Sécurité et confidentialité', route: 'profile', navigate });
+    const { hero, heading } = createHero(state, { title: financeTr(state, 'Sécurité et confidentialité'), route: 'privacy', navigate, back: true, backRoute: 'profile' });
     const security = card('privacy-section');
-    security.append(node('h2', 'Sécurité'), profileMenuRow('Mot de passe', 'Demande un lien de réinitialisation envoyé par e-mail.', 'lock-keyhole', () => navigate('forgot-password'), 'Réinitialiser mon mot de passe'));
+    security.append(node('h2', financeTr(state, 'Sécurité')), profileMenuRow(financeTr(state, 'Mot de passe'), financeTr(state, 'Demande un lien de réinitialisation envoyé par e-mail.'), 'lock-keyhole', () => navigate('forgot-password'), financeTr(state, 'Réinitialiser mon mot de passe')));
     const privacy = card('privacy-section');
-    privacy.append(node('h2', 'Confidentialité'), node('p', 'La politique de confidentialité détaillée doit encore être publiée.', 'privacy-policy-notice'));
+    privacy.append(node('h2', financeTr(state, 'Confidentialité')), node('p', financeTr(state, 'La politique de confidentialité détaillée doit encore être publiée.'), 'privacy-policy-notice'));
     const data = card('privacy-section');
-    data.append(node('h2', 'Données personnelles'), node('p', 'Tes données financières sont chargées depuis ton compte Moni.'));
-    app.append(hero, security, privacy, data, actionButton(financeTr(state, 'Retour au profil'), () => navigate('profile'), 'secondary-wide'));
+    data.append(node('h2', financeTr(state, 'Données personnelles')), node('p', financeTr(state, 'Tes données financières sont chargées depuis ton compte Moni.')));
+    app.append(hero, security, privacy, data);
     heading.focus({ preventScroll: true });
     return;
   }
@@ -159,8 +159,8 @@ export function createProfilePage(app, state, navigate) {
   avatar.textContent = initials(state.profile.name);
   const identityCopy = node('div');
   identityCopy.append(
-    node('strong', state.profile.name || 'Mon compte'),
-    node('span', state.profile.email || 'Adresse non renseignée')
+    node('strong', state.profile.name || financeTr(state, 'Mon compte')),
+    node('span', state.profile.email || financeTr(state, 'Adresse non renseignée'))
   );
   const editButton = iconButton(financeTr(state, 'Modifier'), 'pencil', undefined, 'profile-identity__edit');
   const { edit, name } = createProfileForm(state, identityCopy, avatar);
@@ -172,22 +172,22 @@ export function createProfilePage(app, state, navigate) {
   const about = document.createElement('dialog');
   about.className = 'visual-card profile-confirm';
   about.setAttribute('aria-labelledby', 'profile-about-title');
-  const aboutTitle = node('h2', 'À propos de Moni'); aboutTitle.id = 'profile-about-title';
-  about.append(aboutTitle, node('p', 'Moni permet de suivre ton budget, tes transactions et ton épargne.'), actionButton(financeTr(state, 'Fermer'), () => about.close(), 'secondary-wide'));
+  const aboutTitle = node('h2', financeTr(state, 'À propos de Moni')); aboutTitle.id = 'profile-about-title';
+  about.append(aboutTitle, node('p', financeTr(state, 'Moni permet de suivre ton budget, tes transactions et ton épargne.')), actionButton(financeTr(state, 'Fermer'), () => about.close(), 'secondary-wide'));
   menu.append(
-    profileMenuRow('Paramètres', 'Langue, devise et notifications', 'settings', () => navigate('settings')),
-    profileMenuRow('Abonnements', 'Services et montants mensuels', 'calendar', () => navigate('subscriptions-manage')),
-    profileMenuRow('Sécurité et confidentialité', 'Session et protection des données', 'lock-keyhole', () => navigate('privacy')),
-    profileMenuRow('À propos', 'Informations sur Moni', 'info', () => about.showModal())
+    profileMenuRow(financeTr(state, 'Paramètres'), financeTr(state, 'Langue, devise et notifications'), 'settings', () => navigate('settings')),
+    profileMenuRow(financeTr(state, 'Abonnements'), financeTr(state, 'Services et montants mensuels'), 'calendar', () => navigate('subscriptions-manage')),
+    profileMenuRow(financeTr(state, 'Sécurité et confidentialité'), financeTr(state, 'Session et protection des données'), 'lock-keyhole', () => navigate('privacy')),
+    profileMenuRow(financeTr(state, 'À propos'), financeTr(state, 'Informations sur Moni'), 'info', () => about.showModal())
   );
   const confirmLogout = document.createElement('dialog');
   confirmLogout.className = 'visual-card profile-confirm';
   confirmLogout.setAttribute('aria-labelledby', 'logout-title');
-  const logoutTitle = node('h2', 'Se déconnecter ?'); logoutTitle.id = 'logout-title';
+  const logoutTitle = node('h2', financeTr(state, 'Se déconnecter de Moni ?')); logoutTitle.id = 'logout-title';
   const logoutActions = node('div', undefined, 'profile-dialog-actions');
-  logoutActions.append(actionButton(financeTr(state, 'Annuler'), () => confirmLogout.close(), 'secondary-wide'), actionButton('Se déconnecter', () => { confirmLogout.close(); navigate('logout'); }, 'logout-confirm-button'));
-  confirmLogout.append(logoutTitle, node('p', 'Tu devras te reconnecter pour accéder à ton compte.'), logoutActions);
-  const logout = iconActionButton('Se déconnecter', 'log-out', () => confirmLogout.showModal(), 'logout-button');
+  logoutActions.append(actionButton(financeTr(state, 'Annuler'), () => confirmLogout.close(), 'secondary-wide'), actionButton(financeTr(state, 'Se déconnecter'), () => { confirmLogout.close(); navigate('logout'); }, 'logout-confirm-button'));
+  confirmLogout.append(logoutTitle, node('p', financeTr(state, 'Tu devras te reconnecter pour accéder à ton compte.')), logoutActions);
+  const logout = iconActionButton(financeTr(state, 'Se déconnecter'), 'log-out', () => confirmLogout.showModal(), 'logout-button');
   app.append(hero, identity, edit, menu, logout, about, confirmLogout);
   heading.focus({ preventScroll: true });
 }
@@ -203,7 +203,7 @@ function settingRow(iconName, label, description, control, className = '') {
 }
 
 function renderSettings(app, state, navigate) {
-  const { hero, heading } = createHero(state, { title: t(state, 'settings'), route: 'settings', navigate });
+  const { hero, heading } = createHero(state, { title: t(state, 'settings'), route: 'settings', navigate, back: true, backRoute: 'profile' });
   const status = node('p', undefined, 'settings-status');
   status.setAttribute('role', 'status');
 
@@ -243,8 +243,8 @@ function renderSettings(app, state, navigate) {
 
   const general = card('settings-card');
   general.append(
-    settingRow('globe', t(state, 'language'), 'Choisis la langue de l’application.', language, 'settings-row--language'),
-    settingRow('coins', t(state, 'currency'), 'Définis ta devise principale.', currency, 'settings-row--currency')
+    settingRow('globe', t(state, 'language'), financeTr(state, 'Choisis la langue de l’application.'), language, 'settings-row--language'),
+    settingRow('coins', t(state, 'currency'), financeTr(state, 'Définis ta devise principale.'), currency, 'settings-row--currency')
   );
 
   const alerts = card('settings-card settings-card--alerts');

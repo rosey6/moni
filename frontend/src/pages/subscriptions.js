@@ -133,7 +133,7 @@ function createList(navigate) {
   const total = calculatePlannedTotal(onboardingState.allocations, onboardingState.subscriptions);
   info.setAttribute('role', 'status');
   info.textContent = tr("Total prévu : ") + formatMoney(total, onboardingState.currency) + (total > onboardingState.budget ? tr(" — attention, le budget disponible est dépassé.") : '') + tr(" Les abonnements liés sont compris dans leur allocation.");
-  panel.append(grid, info, button(tr("Continuer"), () => navigate('loading'), 'onboarding-primary'), button(tr("Passer cette étape"), () => navigate('loading')));
+  panel.append(grid, button(tr('+ Autre abonnement'), () => { editing = null; navigate('subscription-edit'); }, 'subscription-other'), info, button(tr("Continuer"), () => navigate('loading'), 'onboarding-primary'), button(tr("Passer cette étape"), () => navigate('loading')));
   return panel;
 }
 
@@ -159,41 +159,6 @@ function createEditor(navigate) {
   amount.inputMode = 'decimal';
   amount.value = current ? inputAmount(current.amount, onboardingState.currency) : '';
   amountLabel.append(amount);
-  const amountDialog = document.createElement('dialog');
-  amountDialog.className = 'subscription-amount-dialog';
-  amountDialog.setAttribute('aria-labelledby', 'subscription-amount-title');
-  const amountTitle = document.createElement('h2');
-  amountTitle.id = 'subscription-amount-title';
-  amountTitle.textContent = tr('Montant mensuel');
-  const dialogError = document.createElement('p');
-  dialogError.className = 'subscription-dialog-error';
-  dialogError.setAttribute('role', 'alert');
-  const dialogActions = document.createElement('div');
-  dialogActions.className = 'subscription-dialog-actions';
-  const cancelAmount = button(tr('Annuler'), () => amountDialog.close(), 'onboarding-secondary');
-  const confirmAmount = button(tr('Valider le montant'), () => {
-    const parsed = parseAmount(amount.value, currencyDigits(onboardingState.currency));
-    if (parsed === null) {
-      dialogError.textContent = tr('Saisis un montant valide.');
-      amount.focus();
-      return;
-    }
-    dialogError.textContent = '';
-    amountDialog.close('confirm');
-  }, 'onboarding-primary');
-  dialogActions.append(cancelAmount, confirmAmount);
-  amountDialog.append(amountTitle, amountLabel, dialogError, dialogActions);
-  let amountBeforeDialog = amount.value;
-  const openAmountDialog = () => {
-    amountBeforeDialog = amount.value;
-    dialogError.textContent = '';
-    amountDialog.showModal();
-    amount.focus();
-  };
-  amountDialog.addEventListener('cancel', () => { amount.value = amountBeforeDialog; });
-  amountDialog.addEventListener('close', () => {
-    if (amountDialog.returnValue !== 'confirm') amount.value = amountBeforeDialog;
-  });
   const allocationLabel = document.createElement('label');
   allocationLabel.textContent = tr("Compris dans une allocation existante ?");
   const allocation = document.createElement('select');
@@ -225,7 +190,7 @@ function createEditor(navigate) {
     const offset = (new Date(year, month, 1).getDay() + 6) % 7;
     for (let index = 0; index < offset; index++) days.append(document.createElement('span'));
     for (let value = 1; value <= monthlyDueDay(year, month + 1, 31); value++) {
-      const cell = button(String(value), () => { day = value; drawCalendar(); openAmountDialog(); }, 'calendar-day');
+      const cell = button(String(value), () => { day = value; drawCalendar(); }, 'calendar-day');
       cell.setAttribute('aria-label', value + ' ' + title.textContent);
       cell.setAttribute('aria-pressed', String(value === day));
       days.append(cell);
@@ -249,7 +214,6 @@ function createEditor(navigate) {
       navigate('subscriptions');
     } catch (exception) { error.textContent = tr(exception.message); }
   });
-  panel.append(nameLabel, calendar, chosen, allocationLabel, error, submit, button(tr("Retour"), () => navigate('subscriptions')));
-  panel.append(amountDialog);
+  panel.append(nameLabel, amountLabel, calendar, chosen, allocationLabel, error, submit, button(tr("Retour"), () => navigate('subscriptions')));
   return panel;
 }
