@@ -1,19 +1,19 @@
-const CACHE_NAME = 'moni-static-budget-summary-20261122';
+const CACHE_NAME = 'moni-static-custom-subscription-flow-20261122';
 const CACHE_PREFIX = 'moni-static-';
 const PRECACHE_URLS = [
   '/',
   '/index.html',
   '/manifest.webmanifest',
   '/favicon.ico',
-  '/src/main.js?v=budget-summary-20261122',
+  '/src/main.js?v=custom-subscription-flow-20261122',
   '/src/pages/profile.js?v=full-i18n-savingsfix-20261122',
-  '/src/pages/subscriptions.js?v=full-i18n-savingsfix-20261122',
+  '/src/pages/subscriptions.js?v=custom-subscription-flow-20261122',
   '/src/pages/subscriptionManager.js?v=full-i18n-savingsfix-20261122',
   '/src/components/financeUi.js?v=full-i18n-savingsfix-20261122',
   '/src/app/i18nFinance.js?v=full-i18n-savingsfix-20261122',
-  '/src/pages/subscriptions.js?v=full-i18n-savingsfix-20261122',
+  '/src/pages/subscriptions.js?v=custom-subscription-flow-20261122',
   '/src/app/i18nEarly.js?v=subscription-sequence-20261122',
-  '/src/main.js?v=budget-summary-20261122',
+  '/src/main.js?v=custom-subscription-flow-20261122',
   '/src/app/api.js',
   '/src/app/pushActivation.js',
   '/src/pages/notifications.js?v=full-i18n-savingsfix-20261122',
@@ -45,7 +45,7 @@ const PRECACHE_URLS = [
   '/src/pages/profile.js?v=full-i18n-savingsfix-20261122',
   '/src/pages/savings.js?v=full-i18n-savingsfix-20261122',
   '/src/pages/subscriptionManager.js?v=full-i18n-savingsfix-20261122',
-  '/src/pages/subscriptions.js?v=full-i18n-savingsfix-20261122',
+  '/src/pages/subscriptions.js?v=custom-subscription-flow-20261122',
   '/src/pages/transactions.js?v=full-i18n-savingsfix-20261122',
   '/src/styles/auth.css',
   '/src/styles/base.css',

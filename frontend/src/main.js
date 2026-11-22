@@ -4,7 +4,7 @@ import { onboardingSteps } from './app/onboardingState.js';
 import { financeState } from './app/financeState.js';
 import { t } from './app/i18n.js';
 import { financeText as financeTr } from './app/i18nFinance.js?v=full-i18n-savingsfix-20261122';
-import { createSubscriptionsPage } from './pages/subscriptions.js?v=full-i18n-savingsfix-20261122';
+import { createSubscriptionsPage } from './pages/subscriptions.js?v=custom-subscription-flow-20261122';
 import { createDashboardPage } from './pages/dashboard.js?v=full-i18n-savingsfix-20261122';
 import { createTransactionsPage } from './pages/transactions.js?v=full-i18n-savingsfix-20261122';
 import { createBudgetsPage } from './pages/budgets.js?v=budget-summary-20261122';

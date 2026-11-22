@@ -138,6 +138,7 @@ function createList(navigate) {
 }
 
 function createEditor(navigate) {
+  const isCustom = editing === null || editing === '';
   const current = onboardingState.subscriptions.find((item) => item.name === editing);
   const panel = document.createElement('form');
   panel.className = 'onboarding-panel subscription-form';
@@ -151,6 +152,12 @@ function createEditor(navigate) {
   nameLabel.append(name);
   const calendar = document.createElement('div');
   const chosen = document.createElement('p');
+  calendar.hidden = isCustom;
+  chosen.hidden = isCustom;
+  name.addEventListener('input', () => {
+    calendar.hidden = !name.value.trim();
+    chosen.hidden = calendar.hidden;
+  });
   chosen.setAttribute('aria-live', 'polite');
   let day = current?.billingDay || null;
   const amountLabel = document.createElement('label');
@@ -179,6 +186,16 @@ function createEditor(navigate) {
       return;
     }
     dialogError.textContent = '';
+    if (isCustom) {
+      try {
+        const updated = saveSubscription(onboardingState.subscriptions, { name: name.value, amount: parsed, billingDay: day, includedIn: '' });
+        calculatePlannedTotal(onboardingState.allocations, updated);
+        onboardingState.subscriptions = updated;
+        amountDialog.close('confirm');
+        navigate('subscriptions');
+      } catch (exception) { dialogError.textContent = tr(exception.message); }
+      return;
+    }
     amountDialog.close('confirm');
   }, 'onboarding-primary');
   dialogActions.append(cancelAmount, confirmAmount);
@@ -240,6 +257,7 @@ function createEditor(navigate) {
   submit.textContent = tr("Enregistrer");
   panel.addEventListener('submit', (event) => {
     event.preventDefault();
+    if (isCustom) return;
     try {
       const parsed = parseAmount(amount.value, currencyDigits(onboardingState.currency));
       if (parsed === null) throw new Error(tr("Saisis un montant valide."));
@@ -249,6 +267,8 @@ function createEditor(navigate) {
       navigate('subscriptions');
     } catch (exception) { error.textContent = tr(exception.message); }
   });
+  allocationLabel.hidden = isCustom;
+  submit.hidden = isCustom;
   panel.append(nameLabel, calendar, chosen, allocationLabel, error, submit, button(tr("Retour"), () => navigate('subscriptions')));
   panel.append(amountDialog);
   return panel;
