@@ -1,4 +1,4 @@
-import { financeText as tr, financeLocale, financeFormat as fmt } from '../app/i18nFinance.js';
+import { financeText as tr, financeLocale, financeFormat as fmt } from '../app/i18nFinance.js?v=full-i18n-20261122';
 import { monthlyDueDay } from './subscriptions.js';
 import { savingsSummary } from './savings.js';
 import { budgetCategories, summarizeBudgets } from './budgets.js';

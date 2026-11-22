@@ -1,4 +1,4 @@
-import { earlyText as tr, earlyLocale } from '../app/i18nEarly.js?v=subscription-sequence-20261122';
+import { earlyText as tr, earlyLocale } from '../app/i18nEarly.js?v=full-i18n-20261122';
 import { onboardingState, serializeOnboarding } from '../app/onboardingState.js';
 import { parseAmount } from '../domain/budget.js';
 import { currencyDigits, formatMoney, inputAmount } from '../domain/money.js';

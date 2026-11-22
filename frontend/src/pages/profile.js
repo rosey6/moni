@@ -1,6 +1,6 @@
 import { switchCurrency } from '../app/financeState.js';
 import { t } from '../app/i18n.js';
-import { financeText as financeTr } from '../app/i18nFinance.js';
+import { financeText as financeTr } from '../app/i18nFinance.js?v=full-i18n-20261122';
 import { actionButton, card, createHero, icon, iconActionButton, iconButton } from '../components/financeUi.js';
 import { getPushStatus, revokePushDevice, saveProfile, sendPushTest } from '../app/api.js';
 import { applyServerState } from '../app/serverState.js';

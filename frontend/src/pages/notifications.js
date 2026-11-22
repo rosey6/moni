@@ -1,4 +1,4 @@
-import { financeText as tr, financeLocale } from '../app/i18nFinance.js';
+import { financeText as tr, financeLocale } from '../app/i18nFinance.js?v=full-i18n-20261122';
 import { listNotifications, markNotificationRead, markAllNotificationsRead } from '../app/api.js';
 import { actionButton, createHero, icon, iconButton } from '../components/financeUi.js';
 

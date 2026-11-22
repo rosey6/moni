@@ -1,4 +1,4 @@
-import { earlyText as tr } from '../app/i18nEarly.js';
+import { earlyText as tr } from '../app/i18nEarly.js?v=full-i18n-20261122';
 import { createField } from '../components/formField.js';
 import { createIcon } from '../components/icon.js';
 import { forgotPassword, resetPassword } from '../app/api.js';

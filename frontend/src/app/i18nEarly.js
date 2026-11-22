@@ -1,6 +1,21 @@
 import { onboardingState } from './onboardingState.js';
 
 const english = {
+  "+ Ajouter un abonnement": "+ Add subscription",
+  "Ajouter un abonnement": "Add subscription",
+  "Dépassement du budget : ": "Over budget: ",
+  "Annuler": "Cancel",
+  "Autre montant": "Other amount",
+  "Budget mensuel": "Monthly budget",
+  "Connexion au serveur…": "Connecting to the server…",
+  "Devise sélectionnée": "Selected currency",
+  "Fermer la saisie": "Close amount entry",
+  "Modifier le montant": "Edit amount",
+  "Montants suggérés": "Suggested amounts",
+  "Reçois un lien sécurisé pour en choisir un nouveau.": "Get a secure link to choose a new one.",
+  "Saisis ton montant mensuel.": "Enter your monthly amount.",
+  "Ton budget mensuel doit être supérieur à zéro.": "Your monthly budget must be greater than zero.",
+  "Valider": "Confirm",
   "J’accepte la ": "I accept the ",
   "politique de confidentialité": "privacy policy",
   "Accepte la politique de confidentialité pour créer ton compte.": "Accept the privacy policy to create your account.",

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'moni-static-subscription-sequence-20261122';
+const CACHE_NAME = 'moni-static-full-i18n-20261122';
 const CACHE_PREFIX = 'moni-static-';
 const PRECACHE_URLS = [
   '/',

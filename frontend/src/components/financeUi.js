@@ -1,4 +1,4 @@
-import { financeText as tr } from '../app/i18nFinance.js';
+import { financeText as tr } from '../app/i18nFinance.js?v=full-i18n-20261122';
 import { createIcon } from './icon.js';
 
 const iconAliases = {
