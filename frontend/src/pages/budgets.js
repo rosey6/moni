@@ -79,7 +79,7 @@ export function createBudgetsPage(app, state, navigate) {
   const overviewStats = element('div', undefined, 'budget-overview__stats');
   [['Budget total', money(state.budget), 'wallet-cards'], ['Prévu', money(displayPlanned), 'chart-no-axes-column-increasing'], [displayRemaining < 0 ? 'Dépassement' : 'À répartir', money(Math.abs(displayRemaining)), 'circle-dollar-sign']].forEach(([label, value, iconName], index) => {
     const row = element('div', undefined, `budget-stat ${index === 2 ? (displayRemaining < 0 ? 'is-negative' : 'is-positive') : ''}`);
-    row.append(icon(iconName), element('span', label), element('strong', value)); overviewStats.append(row);
+    row.append(icon(iconName), element('span', tr(state, label)), element('strong', value)); overviewStats.append(row);
   });
   overview.append(overviewStats);
 
