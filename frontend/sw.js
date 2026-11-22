@@ -1,16 +1,18 @@
-const CACHE_NAME = 'moni-static-profile-subscriptions-20261122';
+const CACHE_NAME = 'moni-static-subscription-sequence-20261122';
 const CACHE_PREFIX = 'moni-static-';
 const PRECACHE_URLS = [
   '/',
   '/index.html',
   '/manifest.webmanifest',
   '/favicon.ico',
-  '/src/main.js?v=20261115-session-timeout',
+  '/src/main.js?v=subscription-sequence-20261122',
   '/src/pages/profile.js?v=profile-subscriptions-20261122',
   '/src/pages/subscriptions.js?v=profile-subscriptions-20261122',
   '/src/pages/subscriptionManager.js?v=profile-subscriptions-20261122',
   '/src/components/financeUi.js?v=profile-subscriptions-20261122',
   '/src/app/i18nFinance.js?v=profile-subscriptions-20261122',
+  '/src/pages/subscriptions.js?v=subscription-sequence-20261122',
+  '/src/app/i18nEarly.js?v=subscription-sequence-20261122',
   '/src/main.js',
   '/src/app/api.js',
   '/src/app/pushActivation.js',

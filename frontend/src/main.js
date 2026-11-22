@@ -4,7 +4,7 @@ import { onboardingSteps } from './app/onboardingState.js';
 import { financeState } from './app/financeState.js';
 import { t } from './app/i18n.js';
 import { financeText as financeTr } from './app/i18nFinance.js';
-import { createSubscriptionsPage } from './pages/subscriptions.js';
+import { createSubscriptionsPage } from './pages/subscriptions.js?v=subscription-sequence-20261122';
 import { createDashboardPage } from './pages/dashboard.js';
 import { createTransactionsPage } from './pages/transactions.js';
 import { createBudgetsPage } from './pages/budgets.js';

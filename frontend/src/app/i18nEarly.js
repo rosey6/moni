@@ -101,6 +101,8 @@ const english = {
   " Les abonnements liés sont compris dans leur allocation.": " Linked subscriptions are included in their allocation.",
   "Nom du service": "Service name",
   "Montant mensuel (": "Monthly amount (",
+  "Montant mensuel": "Monthly amount",
+  "Valider le montant": "Confirm amount",
   "Compris dans une allocation existante ?": "Included in an existing allocation?",
   "Non, charge distincte": "No, separate charge",
   "Mois précédent": "Previous month",

@@ -1,4 +1,4 @@
-import { earlyText as tr, earlyLocale } from '../app/i18nEarly.js';
+import { earlyText as tr, earlyLocale } from '../app/i18nEarly.js?v=subscription-sequence-20261122';
 import { onboardingState, serializeOnboarding } from '../app/onboardingState.js';
 import { parseAmount } from '../domain/budget.js';
 import { currencyDigits, formatMoney, inputAmount } from '../domain/money.js';
@@ -159,6 +159,41 @@ function createEditor(navigate) {
   amount.inputMode = 'decimal';
   amount.value = current ? inputAmount(current.amount, onboardingState.currency) : '';
   amountLabel.append(amount);
+  const amountDialog = document.createElement('dialog');
+  amountDialog.className = 'subscription-amount-dialog';
+  amountDialog.setAttribute('aria-labelledby', 'subscription-amount-title');
+  const amountTitle = document.createElement('h2');
+  amountTitle.id = 'subscription-amount-title';
+  amountTitle.textContent = tr('Montant mensuel');
+  const dialogError = document.createElement('p');
+  dialogError.className = 'subscription-dialog-error';
+  dialogError.setAttribute('role', 'alert');
+  const dialogActions = document.createElement('div');
+  dialogActions.className = 'subscription-dialog-actions';
+  const cancelAmount = button(tr('Annuler'), () => amountDialog.close(), 'onboarding-secondary');
+  const confirmAmount = button(tr('Valider le montant'), () => {
+    const parsed = parseAmount(amount.value, currencyDigits(onboardingState.currency));
+    if (parsed === null) {
+      dialogError.textContent = tr('Saisis un montant valide.');
+      amount.focus();
+      return;
+    }
+    dialogError.textContent = '';
+    amountDialog.close('confirm');
+  }, 'onboarding-primary');
+  dialogActions.append(cancelAmount, confirmAmount);
+  amountDialog.append(amountTitle, amountLabel, dialogError, dialogActions);
+  let amountBeforeDialog = amount.value;
+  const openAmountDialog = () => {
+    amountBeforeDialog = amount.value;
+    dialogError.textContent = '';
+    amountDialog.showModal();
+    amount.focus();
+  };
+  amountDialog.addEventListener('cancel', () => { amount.value = amountBeforeDialog; });
+  amountDialog.addEventListener('close', () => {
+    if (amountDialog.returnValue !== 'confirm') amount.value = amountBeforeDialog;
+  });
   const allocationLabel = document.createElement('label');
   allocationLabel.textContent = tr("Compris dans une allocation existante ?");
   const allocation = document.createElement('select');
@@ -190,7 +225,7 @@ function createEditor(navigate) {
     const offset = (new Date(year, month, 1).getDay() + 6) % 7;
     for (let index = 0; index < offset; index++) days.append(document.createElement('span'));
     for (let value = 1; value <= monthlyDueDay(year, month + 1, 31); value++) {
-      const cell = button(String(value), () => { day = value; drawCalendar(); }, 'calendar-day');
+      const cell = button(String(value), () => { day = value; drawCalendar(); openAmountDialog(); }, 'calendar-day');
       cell.setAttribute('aria-label', value + ' ' + title.textContent);
       cell.setAttribute('aria-pressed', String(value === day));
       days.append(cell);
@@ -214,6 +249,7 @@ function createEditor(navigate) {
       navigate('subscriptions');
     } catch (exception) { error.textContent = tr(exception.message); }
   });
-  panel.append(nameLabel, amountLabel, calendar, chosen, allocationLabel, error, submit, button(tr("Retour"), () => navigate('subscriptions')));
+  panel.append(nameLabel, calendar, chosen, allocationLabel, error, submit, button(tr("Retour"), () => navigate('subscriptions')));
+  panel.append(amountDialog);
   return panel;
 }
