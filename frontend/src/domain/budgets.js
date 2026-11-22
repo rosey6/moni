@@ -15,6 +15,6 @@ export function summarizeBudgets(state, month) {
 }
 
 export function removeBudget(state, category) {
-  if (state.subscriptions.some((item) => item.includedIn === category)) throw new Error('Détache d’abord les abonnements liés à cette enveloppe.');
   delete state.allocations[category];
+  state.subscriptions = state.subscriptions.map((item) => item.includedIn === category ? { ...item, includedIn: null } : item);
 }

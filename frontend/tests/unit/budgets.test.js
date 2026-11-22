@@ -13,11 +13,13 @@ test('distingue dépenses, allocations et abonnements liés', () => {
   state.allocations.rent = 700;
   assert.equal(summarizeBudgets(state, '2026-11').items[0].exceeded, false);
 });
-test('protège les liens et recalcule après suppression', () => {
+test('supprime une enveloppe et détache les abonnements en conservant les transactions', () => {
   const state = data();
-  assert.throws(() => removeBudget(state, 'rent'));
+  const transactions = state.transactions;
+  removeBudget(state, 'rent');
+  assert.equal(Object.hasOwn(state.allocations, 'rent'), false);
+  assert.deepEqual(state.subscriptions.map(({ includedIn }) => includedIn), [null, null, null]);
+  assert.equal(state.transactions, transactions);
   removeBudget(state, 'groceries');
-  assert.equal(summarizeBudgets(state, '2026-11').items.length, 1);
-  state.allocations.rent = 0;
-  assert.equal(summarizeBudgets(state, '2026-11').items[0].exceeded, true);
+  assert.equal(summarizeBudgets(state, '2026-11').items.length, 0);
 });
