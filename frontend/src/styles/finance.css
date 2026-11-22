@@ -444,4 +444,6 @@
   .dashboard-metric > div { width: 100%; }
   .dashboard-metric strong, .dashboard-metric span { white-space: nowrap; }
   .dashboard-metric span { font-size: 13px; }
+  .finance-content > .finance-hero:has(.hero-back) { min-height: 52px; padding-left: 54px; }
+  .finance-content > .finance-hero:has(.hero-back) .hero-back { top: 0; left: 0; }
 }

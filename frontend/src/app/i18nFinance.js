@@ -1,5 +1,6 @@
 // Textes financiers de l’interface.
 const en = {
+  "Accueil": "Home",
   "Transaction invalide.": "Invalid transaction.",
   "Bonjour": "Hello",
   "Vue d’ensemble": "Overview",
@@ -311,6 +312,7 @@ const en = {
   "Objectifs d’épargne": "Savings goals",
   "Pas encore assez de données pour afficher une évolution.": "Not enough data to show a trend yet.",
   "Profil": "Profile",
+  "Préférences générales": "General preferences",
   "Progression (aperçu)": "Progress preview",
   "Progression de l’objectif": "Goal progress",
   "Précédent": "Previous",

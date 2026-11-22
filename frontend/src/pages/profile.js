@@ -1,6 +1,6 @@
 import { switchCurrency } from '../app/financeState.js';
 import { t } from '../app/i18n.js';
-import { financeText as financeTr } from '../app/i18nFinance.js?v=full-i18n-20261122';
+import { financeText as financeTr } from '../app/i18nFinance.js?v=full-i18n-profilefix-20261122';
 import { actionButton, card, createHero, icon, iconActionButton, iconButton } from '../components/financeUi.js';
 import { getPushStatus, revokePushDevice, saveProfile, sendPushTest } from '../app/api.js';
 import { applyServerState } from '../app/serverState.js';
@@ -438,6 +438,6 @@ function renderSettings(app, state, navigate) {
   refreshPush().catch(error => { input.disabled = true; testButton.disabled = true; pushStatus.textContent = error.message || financeTr(state, 'Statut des notifications push indisponible.'); lastActivationError = error.message || ''; updateDiagnostics(); });
   pushActions.append(testButton, pushStatus, diagnostic);
   alerts.append(pushActions);
-  app.append(hero, settingsSection('Préférences générales', 'settings', general), settingsSection('Notifications', 'bell', alerts), status);
+  app.append(hero, settingsSection(financeTr(state, 'Préférences générales'), 'settings', general), settingsSection(financeTr(state, 'Notifications'), 'bell', alerts), status);
   heading.focus({ preventScroll: true });
 }
