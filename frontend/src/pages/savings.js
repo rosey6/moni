@@ -1,4 +1,4 @@
-import { financeText as tr, financeLocale, financeFormat as fmt } from '../app/i18nFinance.js?v=full-i18n-finalfix-20261122';
+import { financeText as tr, financeLocale, financeFormat as fmt } from '../app/i18nFinance.js?v=full-i18n-savingsfix-20261122';
 import { parseAmount } from '../domain/budget.js';
 import { currencyDigits, formatAmount, formatMoney, inputAmount } from '../domain/money.js';
 import { savingsSummary, totalSavings, validDate } from '../domain/savings.js';
@@ -101,7 +101,7 @@ export function createSavingsPage(app, state, navigate) {
       const button = actionButton('', () => { editorMode = mode; renderEditor(); }, 'savings-type-choice');
       const image = document.createElement('img'); image.src = `./public/assets/savings/${asset}`; image.alt = ''; image.addEventListener('error', () => image.remove(), { once: true });
       image.width = 112; image.height = 112; image.decoding = 'async';
-      button.append(image, node('strong', label), node('small', description)); choices.append(button);
+      button.append(image, node('strong', tr(viewState, label)), node('small', tr(viewState, description))); choices.append(button);
     });
     app.append(hero, choices, actionButton(tr(viewState, 'Annuler'), renderList, 'secondary-wide'));
     heading.focus({ preventScroll: true });
@@ -114,14 +114,14 @@ export function createSavingsPage(app, state, navigate) {
     const top = node('div', undefined, 'goal-card__top');
     top.append(node('span', undefined, 'goal-card__icon'), node('div'));
     top.firstChild.append(icon('piggy-bank'));
-    top.lastChild.append(node('h3', goal.name), node('p', free ? 'Épargne libre' : fmt(viewState, 'Objectif : {target}', { target: money(goal.target) })));
+    top.lastChild.append(node('h3', goal.name), node('p', free ? tr(viewState, 'Épargne libre') : fmt(viewState, 'Objectif : {target}', { target: money(goal.target) })));
     const edit = actionButton('', () => { editingGoal = goal; renderEditor(); }, 'row-chevron');
     edit.setAttribute('aria-label', tr(viewState, 'Modifier'));
     edit.append(icon('pencil'));
     top.append(edit);
     if (!free && goal.date) top.children[1].append(node('span', new Intl.DateTimeFormat(financeLocale(viewState), { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${goal.date}T00:00:00Z`)), 'goal-card__date'));
     article.append(top);
-    const progressRow = node('div', undefined, 'goal-card__progress-row'); progressRow.append(node('strong', free ? money(summary.saved) : `${summary.progress} %`), node('span', free ? 'Versements libres' : `${money(summary.saved)} / ${money(goal.target)}`)); article.append(progressRow);
+    const progressRow = node('div', undefined, 'goal-card__progress-row'); progressRow.append(node('strong', free ? money(summary.saved) : `${summary.progress} %`), node('span', free ? tr(viewState, 'Versements libres') : `${money(summary.saved)} / ${money(goal.target)}`)); article.append(progressRow);
     if (!free) {
       const progress = node('div', undefined, 'visual-progress'); progress.style.setProperty('--progress', `${summary.progress}%`); progress.setAttribute('role', 'progressbar'); progress.setAttribute('aria-valuenow', String(summary.progress)); progress.setAttribute('aria-valuemin', '0'); progress.setAttribute('aria-valuemax', '100'); progress.setAttribute('aria-label', fmt(viewState, 'Progression de {name}', { name: goal.name })); article.append(progress);
     }

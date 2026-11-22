@@ -8,6 +8,8 @@ test('traduit les libellés, substitutions et notifications financières', () =>
  assert.equal(financeText(state,'Accueil'),'Home');
  assert.equal(financeText(state,'Préférences générales'),'General preferences');
  assert.equal(financeText(state,'Activer les alertes du compte et sur cet appareil.'),'Enable account and device alerts.');
+ assert.equal(financeText(state,'Épargne par objectif'),'Goal-based savings');
+ assert.equal(financeText(state,'Prévu'),'Planned');
  assert.equal(financeFormat(state,'Montant ({currency})',{currency:'EUR'}),'Amount (EUR)');
  assert.equal(financeLocale(state),'en-US');
  assert.match(getNotifications(state,new Date(2026,0,14))[0].text,/scheduled for/);

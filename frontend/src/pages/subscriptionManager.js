@@ -1,4 +1,4 @@
-import { financeText as tr, financeLocale } from '../app/i18nFinance.js?v=full-i18n-finalfix-20261122';
+import { financeText as tr, financeLocale } from '../app/i18nFinance.js?v=full-i18n-savingsfix-20261122';
 import { actionButton, card, createHero } from '../components/financeUi.js';
 import { currencyDigits, formatMoney, inputAmount } from '../domain/money.js';
 import { monthlyDueDay, saveSubscription } from '../domain/subscriptions.js';
